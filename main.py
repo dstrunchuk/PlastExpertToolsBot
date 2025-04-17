@@ -4,7 +4,7 @@ import json
 import os
 
 # === КОНФИГ ===
-BOT_TOKEN = "вставь_тут_свой_токен"
+BOT_TOKEN = "7500703930:AAFaxpYm7mcMYkosPz2Hru9uBYaMsyOD8xY"
 DEVELOPER_ID = [906725069]  # Дима — всегда с полным доступом
 
 # === ЗАГРУЗКА JSON ===
