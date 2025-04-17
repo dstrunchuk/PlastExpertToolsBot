@@ -9,18 +9,23 @@ import os
 # === КОНФИГ ===
 BOT_TOKEN = "7500703930:AAFaxpYm7mcMYkosPz2Hru9uBYaMsyOD8xY"
 DEVELOPER_ID = [987664835]
-PENDING_TRANSFERS = {}
 
 # === ЗАГРУЗКА / СОХРАНЕНИЕ JSON ===
 def load_json(path):
     if not os.path.exists(path):
-        return []
+        return {}
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 def save_json(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+def load_pending():
+    return load_json("data/pending.json")
+
+def save_pending(pending):
+    save_json("data/pending.json", pending)
 
 # === МЕНЮ БРИГАДИРА ===
 async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -44,10 +49,7 @@ async def show_supervisor_menu(update: Update, context: ContextTypes.DEFAULT_TYP
         [InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]
     ]
     markup = InlineKeyboardMarkup(keyboard)
-    if update.message:
-        await update.message.reply_text("Меню супервайзера:", reply_markup=markup)
-    else:
-        await update.callback_query.message.edit_text("Меню супервайзера:", reply_markup=markup)
+    await update.message.reply_text("Меню супервайзера:", reply_markup=markup)
 
 # === МЕНЮ РАЗРАБОТЧИКА ===
 async def show_developer_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -56,8 +58,8 @@ async def show_developer_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
         [InlineKeyboardButton("🧠 Я как супервайзер", callback_data="dev_as_supervisor")],
         [InlineKeyboardButton("⚙️ Меню разработчика", callback_data="dev_menu")]
     ]
-    await update.message.reply_text("Ты разработчик. Что хочешь делать?",
-        reply_markup=InlineKeyboardMarkup(keyboard))
+    markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Ты разработчик. Что хочешь делать?", reply_markup=markup)
 
 # === /start ===
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -83,7 +85,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("Извините, вы не зарегистрированы в системе.")
 
-# === КНОПКИ ===
+# === ОБРАБОТКА КНОПОК ===
 async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -92,13 +94,10 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if action == "dev_as_foreman":
         await show_foreman_menu(update, context)
-
     elif action == "dev_as_supervisor":
         await show_supervisor_menu(update, context)
-
     elif action == "dev_menu":
         await query.edit_message_text("Раздел разработчика — скоро.")
-
     elif action == "my_tools":
         tools = load_json("data/tools.json")
         my = [t for t in tools if t.get("responsible_id") == user_id]
@@ -107,7 +106,6 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             msg += f"• {t['name']} — {t['object']} ({t['status']})\n"
         markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
         await query.edit_message_text(msg, reply_markup=markup)
-
     elif action == "all_tools":
         tools = load_json("data/tools.json")
         foremen = load_json("data/foremen.json")
@@ -117,20 +115,20 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             msg += f"• {t['name']} — {t['object']} ({t['status']}), ответственный: {f_name}\n"
         markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
         await query.edit_message_text(msg, reply_markup=markup)
-
     elif action == "transfer_tool":
         await query.edit_message_text("Отправь ID инструмента, который хочешь передать.")
         context.user_data["transfer_stage"] = "waiting_for_tool_id"
-
     elif action.startswith("give_to_"):
         receiver_id = int(action.split("_")[-1])
         tool = context.user_data.get("transfer_tool")
         tool_id = tool["id"]
-        PENDING_TRANSFERS[tool_id] = {
+        pending = load_pending()
+        pending[tool_id] = {
             "tool_id": tool_id,
             "from_id": user_id,
             "to_id": receiver_id
         }
+        save_pending(pending)
         await context.bot.send_message(
             chat_id=receiver_id,
             text=f"{tool['name']} ({tool['object']})\nПодтверди получение.",
@@ -140,10 +138,10 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ])
         )
         await query.edit_message_text("Запрос отправлен. Ожидаем подтверждения.")
-
     elif action.startswith("confirm_"):
         tool_id = action.split("_")[1]
-        transfer = PENDING_TRANSFERS.get(tool_id)
+        pending = load_pending()
+        transfer = pending.get(tool_id)
         if not transfer:
             await query.edit_message_text("Передача не найдена или уже подтверждена.")
             return
@@ -154,24 +152,20 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_json("data/tools.json", tools)
         await query.edit_message_text("Инструмент успешно принят.")
         await context.bot.send_message(transfer["from_id"], "Инструмент передан и принят.")
-        del PENDING_TRANSFERS[tool_id]
-
+        del pending[tool_id]
+        save_pending(pending)
     elif action == "cancel_transfer":
         await query.edit_message_text("Передача отменена.")
-
     elif action == "return_tool":
         await query.edit_message_text("Сканируй QR-код для возврата.")
-
     elif action == "add_tool":
         await query.edit_message_text("Введи данные нового инструмента.")
-
     elif action == "back_to_menu":
         await show_foreman_menu(update, context)
-
     else:
         await query.edit_message_text("Неизвестное действие.")
 
-# === СООБЩЕНИЯ ===
+# === ОБРАБОТКА СООБЩЕНИЙ ===
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     text = update.message.text.strip()
