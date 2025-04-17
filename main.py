@@ -9,15 +9,15 @@ import os
 # === КОНФИГ ===
 BOT_TOKEN = "7500703930:AAFaxpYm7mcMYkosPz2Hru9uBYaMsyOD8xY"
 DEVELOPER_ID = [987664835]
+PENDING_TRANSFERS = {}
 
-# === ЗАГРУЗКА JSON ===
+# === ЗАГРУЗКА / СОХРАНЕНИЕ JSON ===
 def load_json(path):
     if not os.path.exists(path):
         return []
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-# === СОХРАНЕНИЕ JSON ===
 def save_json(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -31,11 +31,11 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("✅ Вернуть на склад", callback_data="return_tool")],
         [InlineKeyboardButton("➕ Добавить инструмент", callback_data="add_tool")]
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    markup = InlineKeyboardMarkup(keyboard)
     if update.message:
-        await update.message.reply_text("Выберите действие:", reply_markup=reply_markup)
+        await update.message.reply_text("Выберите действие:", reply_markup=markup)
     else:
-        await update.callback_query.message.edit_text("Выберите действие:", reply_markup=reply_markup)
+        await update.callback_query.message.edit_text("Выберите действие:", reply_markup=markup)
 
 # === МЕНЮ СУПЕРВАЙЗЕРА ===
 async def show_supervisor_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -43,8 +43,11 @@ async def show_supervisor_menu(update: Update, context: ContextTypes.DEFAULT_TYP
         [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools")],
         [InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Меню супервайзера:", reply_markup=reply_markup)
+    markup = InlineKeyboardMarkup(keyboard)
+    if update.message:
+        await update.message.reply_text("Меню супервайзера:", reply_markup=markup)
+    else:
+        await update.callback_query.message.edit_text("Меню супервайзера:", reply_markup=markup)
 
 # === МЕНЮ РАЗРАБОТЧИКА ===
 async def show_developer_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -53,8 +56,8 @@ async def show_developer_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
         [InlineKeyboardButton("🧠 Я как супервайзер", callback_data="dev_as_supervisor")],
         [InlineKeyboardButton("⚙️ Меню разработчика", callback_data="dev_menu")]
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Ты разработчик. Что хочешь делать?", reply_markup=reply_markup)
+    await update.message.reply_text("Ты разработчик. Что хочешь делать?",
+        reply_markup=InlineKeyboardMarkup(keyboard))
 
 # === /start ===
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -66,15 +69,15 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await show_developer_menu(update, context)
         return
 
-    for foreman in foremen:
-        if foreman["id"] == user_id:
-            await update.message.reply_text(f"Привет, {foreman['name']}! Ты зарегистрирован как бригадир.")
+    for f in foremen:
+        if f["id"] == user_id:
+            await update.message.reply_text(f"Привет, {f['name']}! Ты зарегистрирован как бригадир.")
             await show_foreman_menu(update, context)
             return
 
-    for user in users:
-        if user["id"] == user_id and user["role"] == "Супервайзер":
-            await update.message.reply_text(f"Добро пожаловать, {user['name']} (Супервайзер).")
+    for u in users:
+        if u["id"] == user_id and u["role"] == "Супервайзер":
+            await update.message.reply_text(f"Добро пожаловать, {u['name']} (Супервайзер).")
             await show_supervisor_menu(update, context)
             return
 
@@ -89,17 +92,22 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if action == "dev_as_foreman":
         await show_foreman_menu(update, context)
+
     elif action == "dev_as_supervisor":
         await show_supervisor_menu(update, context)
+
     elif action == "dev_menu":
-        await query.edit_message_text("Раздел разработчика: скоро будет доступ к логам и выгрузке.")
+        await query.edit_message_text("Раздел разработчика — скоро.")
+
     elif action == "my_tools":
         tools = load_json("data/tools.json")
         my = [t for t in tools if t.get("responsible_id") == user_id]
         msg = "Твои инструменты:\n\n" if my else "У тебя нет прикреплённых инструментов."
         for t in my:
             msg += f"• {t['name']} — {t['object']} ({t['status']})\n"
-        await query.edit_message_text(msg)
+        markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
+        await query.edit_message_text(msg, reply_markup=markup)
+
     elif action == "all_tools":
         tools = load_json("data/tools.json")
         foremen = load_json("data/foremen.json")
@@ -107,47 +115,59 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for t in tools:
             f_name = next((f["name"] for f in foremen if f["id"] == t["responsible_id"]), "неизвестен")
             msg += f"• {t['name']} — {t['object']} ({t['status']}), ответственный: {f_name}\n"
-        await query.edit_message_text(msg + "\n◀️ /start — назад")
+        markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
+        await query.edit_message_text(msg, reply_markup=markup)
+
     elif action == "transfer_tool":
-        await query.edit_message_text("Отправь ID (или отсканируй QR) инструмента.")
+        await query.edit_message_text("Отправь ID инструмента, который хочешь передать.")
         context.user_data["transfer_stage"] = "waiting_for_tool_id"
+
     elif action.startswith("give_to_"):
         receiver_id = int(action.split("_")[-1])
         tool = context.user_data.get("transfer_tool")
-        context.user_data["pending_transfer"] = {
-            "tool_id": tool["id"],
-            "from_id": query.from_user.id,
+        tool_id = tool["id"]
+        PENDING_TRANSFERS[tool_id] = {
+            "tool_id": tool_id,
+            "from_id": user_id,
             "to_id": receiver_id
         }
         await context.bot.send_message(
             chat_id=receiver_id,
             text=f"{tool['name']} ({tool['object']})\nПодтверди получение.",
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("✅ Принять", callback_data=f"confirm_{tool['id']}")],
+                [InlineKeyboardButton("✅ Принять", callback_data=f"confirm_{tool_id}")],
                 [InlineKeyboardButton("❌ Отказаться", callback_data="cancel_transfer")]
             ])
         )
         await query.edit_message_text("Запрос отправлен. Ожидаем подтверждения.")
+
     elif action.startswith("confirm_"):
         tool_id = action.split("_")[1]
-        transfer = context.user_data.get("pending_transfer")
-        if transfer and transfer["tool_id"] == tool_id:
-            tools = load_json("data/tools.json")
-            for t in tools:
-                if t["id"] == tool_id:
-                    t["responsible_id"] = query.from_user.id
-            save_json("data/tools.json", tools)
-            await query.edit_message_text("Инструмент принят.")
-            await context.bot.send_message(transfer["from_id"], "Инструмент успешно передан.")
-            context.user_data.clear()
+        transfer = PENDING_TRANSFERS.get(tool_id)
+        if not transfer:
+            await query.edit_message_text("Передача не найдена или уже подтверждена.")
+            return
+        tools = load_json("data/tools.json")
+        for t in tools:
+            if t["id"] == tool_id:
+                t["responsible_id"] = user_id
+        save_json("data/tools.json", tools)
+        await query.edit_message_text("Инструмент успешно принят.")
+        await context.bot.send_message(transfer["from_id"], "Инструмент передан и принят.")
+        del PENDING_TRANSFERS[tool_id]
+
     elif action == "cancel_transfer":
         await query.edit_message_text("Передача отменена.")
-    elif action == "back_to_menu":
-        await show_foreman_menu(update, context)
+
     elif action == "return_tool":
         await query.edit_message_text("Сканируй QR-код для возврата.")
+
     elif action == "add_tool":
         await query.edit_message_text("Введи данные нового инструмента.")
+
+    elif action == "back_to_menu":
+        await show_foreman_menu(update, context)
+
     else:
         await query.edit_message_text("Неизвестное действие.")
 
@@ -164,7 +184,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Инструмент не найден.")
             return
         if tool["responsible_id"] != user_id:
-            await update.message.reply_text("Ты не являешься ответственным за этот инструмент.")
+            await update.message.reply_text("Этот инструмент не принадлежит тебе.")
             return
         context.user_data["transfer_tool"] = tool
         context.user_data["transfer_stage"] = "select_receiver"
