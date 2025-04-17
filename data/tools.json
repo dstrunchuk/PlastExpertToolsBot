@@ -1,1 +1,8 @@
-[]
+{
+    "id": "tool_001",
+    "name": "Перфоратор HILTI",
+    "status": "В работе",
+    "object": "Объект A",
+    "responsible_id": 906725069,
+    "photo_id": null
+  }

@@ -5,7 +5,7 @@ import os
 
 # === КОНФИГ ===
 BOT_TOKEN = "7500703930:AAFaxpYm7mcMYkosPz2Hru9uBYaMsyOD8xY"
-DEVELOPER_ID = [906725069]  # Дима — всегда с полным доступом
+DEVELOPER_ID = [906725069]
 
 # === ЗАГРУЗКА JSON ===
 def load_json(path):
@@ -48,7 +48,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for user in users:
         if user["id"] == user_id and user["role"] == "Супервайзер":
             await update.message.reply_text(f"Добро пожаловать, {user['name']} (Супервайзер).")
-            # Здесь будет меню супервайзера
             return
 
     await update.message.reply_text("Извините, вы не зарегистрированы в системе.")
@@ -57,16 +56,31 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_foreman_actions(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-
     action = query.data
+
+    user_id = query.from_user.id
+    tools = load_json("data/tools.json")
+
     if action == "my_tools":
-        await query.edit_message_text("Здесь будут показаны твои инструменты.")
+        user_tools = [t for t in tools if t.get("responsible_id") == user_id]
+
+        if not user_tools:
+            await query.edit_message_text("У тебя пока нет прикреплённых инструментов.")
+        else:
+            msg = "Твои инструменты:\n\n"
+            for tool in user_tools:
+                msg += f"• {tool.get('name')} — {tool.get('object')} ({tool.get('status')})\n"
+            await query.edit_message_text(msg)
+    
     elif action == "transfer_tool":
         await query.edit_message_text("Сканируй QR-код инструмента для передачи.")
+    
     elif action == "return_tool":
         await query.edit_message_text("Сканируй QR-код, чтобы вернуть инструмент на склад.")
+    
     elif action == "add_tool":
         await query.edit_message_text("Введи данные нового инструмента.")
+    
     else:
         await query.edit_message_text("Неизвестное действие.")
 
