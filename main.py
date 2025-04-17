@@ -1,5 +1,8 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler
+from telegram.ext import (
+    ApplicationBuilder, CommandHandler, ContextTypes,
+    CallbackQueryHandler, MessageHandler, filters
+)
 import json
 import os
 
@@ -90,7 +93,9 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(msg)
 
     elif action == "transfer_tool":
-        await query.edit_message_text("Сканируй QR-код инструмента для передачи.")
+        await query.edit_message_text("Отправь мне ID (или отсканируй QR) инструмента, который хочешь передать.")
+        context.user_data["transfer_stage"] = "waiting_for_tool_id"
+
     elif action == "return_tool":
         await query.edit_message_text("Сканируй QR-код, чтобы вернуть инструмент на склад.")
     elif action == "add_tool":
@@ -98,10 +103,47 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await query.edit_message_text("Неизвестное действие.")
 
+# === ОБРАБОТКА СООБЩЕНИЙ ===
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    text = update.message.text.strip()
+    tools = load_json("data/tools.json")
+    foremen = load_json("data/foremen.json")
+
+    if context.user_data.get("transfer_stage") == "waiting_for_tool_id":
+        tool = next((t for t in tools if t["id"] == text), None)
+
+        if not tool:
+            await update.message.reply_text("Инструмент с таким ID не найден.")
+            return
+
+        if tool.get("responsible_id") != user_id:
+            await update.message.reply_text("Этот инструмент не прикреплён к тебе. Ты не можешь его передать.")
+            return
+
+        context.user_data["transfer_tool"] = tool
+        context.user_data["transfer_stage"] = "select_receiver"
+
+        # Показываем список бригадиров
+        buttons = []
+        for f in foremen:
+            if f["id"] != user_id:
+                buttons.append([InlineKeyboardButton(f['name'], callback_data=f"give_to_{f['id']}")])
+
+        if not buttons:
+            await update.message.reply_text("Нет других бригадиров для передачи.")
+            return
+
+        await update.message.reply_text(
+            f"Инструмент найден: {tool['name']} ({tool['object']})\n\nКому передаём?",
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+
 # === ЗАПУСК ===
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start_command))
 app.add_handler(CallbackQueryHandler(handle_callbacks))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 print("Бот запущен.")
 app.run_polling()
