@@ -5,7 +5,7 @@ import os
 
 # === КОНФИГ ===
 BOT_TOKEN = "7500703930:AAFaxpYm7mcMYkosPz2Hru9uBYaMsyOD8xY"
-DEVELOPER_ID = []
+DEVELOPER_ID = [987664835]
 
 # === ЗАГРУЗКА JSON ===
 def load_json(path):
@@ -29,6 +29,16 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif update.callback_query:
         await update.callback_query.message.edit_text("Выберите действие:", reply_markup=reply_markup)
 
+# === ПОКАЗ МЕНЮ РАЗРАБОТЧИКА ===
+async def show_developer_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("🔨 Я как бригадир", callback_data="dev_as_foreman")],
+        [InlineKeyboardButton("🧠 Я как супервайзер", callback_data="dev_as_supervisor")],
+        [InlineKeyboardButton("⚙️ Меню разработчика", callback_data="dev_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Ты разработчик. Что хочешь делать?", reply_markup=reply_markup)
+
 # === /start ===
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -36,7 +46,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     users = load_json("data/users.json")
 
     if user_id in DEVELOPER_ID:
-        await update.message.reply_text("Привет, разработчик! Добро пожаловать.")
+        await show_developer_menu(update, context)
         return
 
     for foreman in foremen:
@@ -52,18 +62,25 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("Извините, вы не зарегистрированы в системе.")
 
-# === ОБРАБОТКА КНОПОК МЕНЮ БРИГАДИРА ===
-async def handle_foreman_actions(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# === ОБРАБОТКА ВСЕХ КНОПОК ===
+async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     action = query.data
-
     user_id = query.from_user.id
-    tools = load_json("data/tools.json")
 
-    if action == "my_tools":
+    if action == "dev_as_foreman":
+        await show_foreman_menu(update, context)
+
+    elif action == "dev_as_supervisor":
+        await query.edit_message_text("Здесь будет меню супервайзера (в разработке).")
+
+    elif action == "dev_menu":
+        await query.edit_message_text("Раздел разработчика: скоро здесь будут кнопки для выгрузки, дампа и лога.")
+
+    elif action == "my_tools":
+        tools = load_json("data/tools.json")
         user_tools = [t for t in tools if t.get("responsible_id") == user_id]
-
         if not user_tools:
             await query.edit_message_text("У тебя пока нет прикреплённых инструментов.")
         else:
@@ -71,23 +88,20 @@ async def handle_foreman_actions(update: Update, context: ContextTypes.DEFAULT_T
             for tool in user_tools:
                 msg += f"• {tool.get('name')} — {tool.get('object')} ({tool.get('status')})\n"
             await query.edit_message_text(msg)
-    
+
     elif action == "transfer_tool":
         await query.edit_message_text("Сканируй QR-код инструмента для передачи.")
-    
     elif action == "return_tool":
         await query.edit_message_text("Сканируй QR-код, чтобы вернуть инструмент на склад.")
-    
     elif action == "add_tool":
         await query.edit_message_text("Введи данные нового инструмента.")
-    
     else:
         await query.edit_message_text("Неизвестное действие.")
 
 # === ЗАПУСК ===
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start_command))
-app.add_handler(CallbackQueryHandler(handle_foreman_actions))
+app.add_handler(CallbackQueryHandler(handle_callbacks))
 
 print("Бот запущен.")
 app.run_polling()

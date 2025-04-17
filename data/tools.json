@@ -1,8 +1,10 @@
-{
-    "id": "tool_001",
-    "name": "Перфоратор HILTI",
-    "status": "В работе",
-    "object": "Объект A",
-    "responsible_id": 987664835,
-    "photo_id": null
-  }
+[
+    {
+      "id": "tool_001",
+      "name": "Перфоратор HILTI TE 7",
+      "status": "В работе",
+      "object": "Объект A",
+      "responsible_id": 987664835,
+      "photo_id": null
+    }
+  ]
