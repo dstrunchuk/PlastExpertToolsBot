@@ -6,8 +6,8 @@ from telegram.ext import (
 import json
 import os
 
-BOT_TOKEN = "7500703930:AAFaxpYm7mcMYkosPz2Hru9uBYaMsyOD8xY"
-DEVELOPER_ID = []
+BOT_TOKEN = "7500703930:AAEvPawqHdW5hqohCxJrZekn3Mp8BBB1j6U"
+DEVELOPER_ID = [987664835]
 ITEMS_PER_PAGE = 10
 
 def load_json(path):
@@ -92,6 +92,7 @@ async def show_page_of_tools(update: Update, context: ContextTypes.DEFAULT_TYPE,
     await update.callback_query.message.edit_text(msg, reply_markup=markup)
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Добро пожаловать в Plast Expert Tools!")
     user_id = update.effective_user.id
     foremen = load_json("data/foremen.json")
     users = load_json("data/users.json")
@@ -200,15 +201,6 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("Введи ID инструмента (например: 23.12):",
                                   reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
         context.user_data["awaiting_id_search"] = True
-    elif action == "search_by_id":
-        await query.edit_message_text("Введи ID инструмента (например: 23.12):",
-                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
-        context.user_data["awaiting_id_search"] = True
-
-        await query.edit_message_text("Введи название или часть названия инструмента для поиска:",
-                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
-        context.user_data["awaiting_search"] = True
-
     elif action == "back_to_menu":
         await show_foreman_menu(update, context)
     else:
