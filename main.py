@@ -119,7 +119,9 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         foremen = load_json("data/foremen.json")
         msg = "Весь инструмент:\n\n"
         for t in tools:
-            f_name = next((f["name"] for f in foremen if f["id"] == t["responsible_id"]), "неизвестен")
+            f_name = t.get("responsible") or next(
+            (f["name"] for f in foremen if f["id"] == t.get("responsible_id")), "не назначен"
+            )
             msg += f"• {t['name']} — {t['object']} ({t['status']}), ответственный: {f_name}\n"
         markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
         await query.edit_message_text(msg, reply_markup=markup)
