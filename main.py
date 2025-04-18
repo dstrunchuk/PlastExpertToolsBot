@@ -115,16 +115,26 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
         await query.edit_message_text(msg, reply_markup=markup)
     elif action == "all_tools":
-        tools = load_json("data/tools.json")
-        foremen = load_json("data/foremen.json")
-        msg = "Весь инструмент:\n\n"
-        for t in tools:
-            f_name = t.get("responsible") or next(
-            (f["name"] for f in foremen if f["id"] == t.get("responsible_id")), "не назначен"
-            )
-            msg += f"• {t['name']} — {t['object']} ({t['status']}), ответственный: {f_name}\n"
-        markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
-        await query.edit_message_text(msg, reply_markup=markup)
+        try:
+            tools = load_json("data/tools.json")
+            foremen = load_json("data/foremen.json")
+            msg = "Весь инструмент:\n\n"
+            if not tools:
+                msg += "Нет доступного инструмента."
+            else:
+                 for t in tools:
+                     name = t.get("name", "Без названия")
+                     obj = t.get("object", "Без объекта")
+                     status = t.get("status", "не указан")
+                     responsible = t.get("responsible") or next(
+                        (f["name"] for f in foremen if f["id"] == t.get("responsible_id")), "не назначен"
+                    )
+                     msg += f"• {name} — {obj} ({status}), ответственный: {responsible}\n"
+            markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
+            await query.edit_message_text(msg, reply_markup=markup)
+        except Exception as e:
+            await query.edit_message_text(f"Ошибка при загрузке инструментов: {e}",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
     elif action == "transfer_tool":
         await query.edit_message_text("Отправь ID инструмента, который хочешь передать.",
                                       reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
