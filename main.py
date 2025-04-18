@@ -7,7 +7,6 @@ import json
 import os
 
 BOT_TOKEN = "7500703930:AAEvPawqHdW5hqohCxJrZekn3Mp8BBB1j6U"
-DEVELOPER_ID = []
 ITEMS_PER_PAGE = 10
 
 def load_json(path):
@@ -35,7 +34,7 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("📋 Мои инструменты", callback_data="my_tools")],
         [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools_0")],
         [InlineKeyboardButton("🔎 Найти инструмент", callback_data="search_tool")],
-        [InlineKeyboardButton("🆔 Найти по ID", callback_data="search_by_id")]
+        [InlineKeyboardButton("🆔 Найти по ID", callback_data="search_by_id")],
         [InlineKeyboardButton("📦 Передать инструмент", callback_data="transfer_tool")],
         [InlineKeyboardButton("✅ Вернуть на склад", callback_data="return_tool")],
         [InlineKeyboardButton("➕ Добавить инструмент", callback_data="add_tool")]
@@ -43,30 +42,27 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     markup = InlineKeyboardMarkup(keyboard)
     if update.message:
         await update.message.reply_text("Выберите действие:", reply_markup=markup)
-    else:
+    elif update.callback_query:
         await update.callback_query.message.edit_text("Выберите действие:", reply_markup=markup)
 
-async def show_supervisor_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools_0")],
-        [InlineKeyboardButton("🔎 Найти инструмент", callback_data="search_tool")],
-        [InlineKeyboardButton("🆔 Найти по ID", callback_data="search_by_id")]
-        [InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]
-    ]
-    markup = InlineKeyboardMarkup(keyboard)
-    if update.message:
-        await update.message.reply_text("Меню супервайзера:", reply_markup=markup)
-    else:
-        await update.callback_query.message.edit_text("Меню супервайзера:", reply_markup=markup)
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Добро пожаловать в Plast Expert Tools!")
+    user_id = update.effective_user.id
+    foremen = load_json("data/foremen.json")
+    users = load_json("data/users.json")
 
-async def show_developer_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [InlineKeyboardButton("🔨 Я как бригадир", callback_data="dev_as_foreman")],
-        [InlineKeyboardButton("🧠 Я как супервайзер", callback_data="dev_as_supervisor")],
-        [InlineKeyboardButton("⚙️ Меню разработчика", callback_data="dev_menu")]
-    ]
-    markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Ты разработчик. Что хочешь делать?", reply_markup=markup)
+    for f in foremen:
+        if f["id"] == user_id:
+            await update.message.reply_text(f"Привет, {f['name']}! Ты зарегистрирован как бригадир.")
+            await show_foreman_menu(update, context)
+            return
+
+    for u in users:
+        if u["id"] == user_id and u["role"] == "Супервайзер":
+            await update.message.reply_text(f"Добро пожаловать, {u['name']} (Супервайзер).")
+            return
+
+    await update.message.reply_text("Извините, вы не зарегистрированы в системе.")
 
 async def show_page_of_tools(update: Update, context: ContextTypes.DEFAULT_TYPE, page: int):
     tools = load_json("data/tools.json")
@@ -91,44 +87,13 @@ async def show_page_of_tools(update: Update, context: ContextTypes.DEFAULT_TYPE,
     markup = InlineKeyboardMarkup([buttons])
     await update.callback_query.message.edit_text(msg, reply_markup=markup)
 
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Добро пожаловать в Plast Expert Tools!")
-    user_id = update.effective_user.id
-    foremen = load_json("data/foremen.json")
-    users = load_json("data/users.json")
-
-    if user_id in DEVELOPER_ID:
-        await show_developer_menu(update, context)
-        return
-
-    for f in foremen:
-        if f["id"] == user_id:
-            await update.message.reply_text(f"Привет, {f['name']}! Ты зарегистрирован как бригадир.")
-            await show_foreman_menu(update, context)
-            return
-
-    for u in users:
-        if u["id"] == user_id and u["role"] == "Супервайзер":
-            await update.message.reply_text(f"Добро пожаловать, {u['name']} (Супервайзер).")
-            await show_supervisor_menu(update, context)
-            return
-
-    await update.message.reply_text("Извините, вы не зарегистрированы в системе.")
-
 async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     action = query.data
     user_id = query.from_user.id
 
-    if action == "dev_as_foreman":
-        await show_foreman_menu(update, context)
-    elif action == "dev_as_supervisor":
-        await show_supervisor_menu(update, context)
-    elif action == "dev_menu":
-        await query.edit_message_text("Раздел разработчика — скоро.",
-                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
-    elif action == "my_tools":
+    if action == "my_tools":
         tools = load_json("data/tools.json")
         my = [t for t in tools if t.get("responsible_id") == user_id]
         msg = "Твои инструменты:" if my else "У тебя нет прикреплённых инструментов."
@@ -136,13 +101,26 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             msg += f"• {t['name']} — {t['object']} ({t['status']})"
         markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
         await query.edit_message_text(msg, reply_markup=markup)
+
     elif action.startswith("all_tools_"):
         page = int(action.split("_")[-1])
         await show_page_of_tools(update, context, page)
+
+    elif action == "search_tool":
+        await query.edit_message_text("Введи название или часть названия инструмента для поиска:",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+        context.user_data["awaiting_search"] = True
+
+    elif action == "search_by_id":
+        await query.edit_message_text("Введи ID инструмента (например: 23.12):",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+        context.user_data["awaiting_id_search"] = True
+
     elif action == "transfer_tool":
         await query.edit_message_text("Отправь ID инструмента, который хочешь передать.",
                                       reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
         context.user_data["transfer_stage"] = "waiting_for_tool_id"
+
     elif action.startswith("give_to_"):
         receiver_id = int(action.split("_")[-1])
         tool = context.user_data.get("transfer_tool")
@@ -164,6 +142,7 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         await query.edit_message_text("Запрос отправлен. Ожидаем подтверждения.",
                                       reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+
     elif action.startswith("confirm_"):
         tool_id = action.split("_")[1]
         pending = load_pending()
@@ -182,27 +161,22 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("Инструмент успешно принят.",
                                       reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
         await context.bot.send_message(transfer["from_id"], "Инструмент передан и принят.")
+
     elif action == "cancel_transfer":
         await query.edit_message_text("Передача отменена.",
                                       reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+
     elif action == "return_tool":
         await query.edit_message_text("Сканируй QR-код для возврата.",
                                       reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+
     elif action == "add_tool":
         await query.edit_message_text("Введи данные нового инструмента.",
                                       reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
-    
-    elif action == "search_tool":
-        await query.edit_message_text("Введи название или часть названия инструмента для поиска:",
-                                  reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
-        context.user_data["awaiting_search"] = True
 
-    elif action == "search_by_id":
-        await query.edit_message_text("Введи ID инструмента (например: 23.12):",
-                                  reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
-        context.user_data["awaiting_id_search"] = True
     elif action == "back_to_menu":
         await show_foreman_menu(update, context)
+
     else:
         await query.edit_message_text("Неизвестное действие.",
                                       reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
@@ -230,6 +204,32 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"{tool['name']} ({tool['object']})Кому передаём?",
             reply_markup=InlineKeyboardMarkup(buttons)
         )
+
+    if context.user_data.get("awaiting_search"):
+        context.user_data["awaiting_search"] = False
+        matches = [t for t in tools if text.lower() in t["name"].lower()]
+        if not matches:
+            await update.message.reply_text("Ничего не найдено.",
+                                            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+            return
+        msg = "Найдено:"
+        for t in matches:
+            responsible = t.get("responsible") or next((f["name"] for f in foremen if f["id"] == t.get("responsible_id")), "не назначен")
+            msg += f"• {t['name']} — {t['object']} ({t['status']}), ответственный: {responsible}"
+        await update.message.reply_text(msg, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+        return
+
+    if context.user_data.get("awaiting_id_search"):
+        context.user_data["awaiting_id_search"] = False
+        tool = next((t for t in tools if str(t["id"]) == text), None)
+        if not tool:
+            await update.message.reply_text("Инструмент с таким ID не найден.",
+                                            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+            return
+        responsible = tool.get("responsible") or next((f["name"] for f in foremen if f["id"] == tool.get("responsible_id")), "не назначен")
+        msg = f"• {tool['name']} — {tool['object']}Статус: {tool['status']}Ответственный: {responsible}"
+        await update.message.reply_text(msg, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+        return
 
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start_command))
