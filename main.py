@@ -7,7 +7,7 @@ import json
 import os
 
 BOT_TOKEN = "7500703930:AAEvPawqHdW5hqohCxJrZekn3Mp8BBB1j6U"
-DEVELOPER_ID = [987664835]
+DEVELOPER_ID = []
 ITEMS_PER_PAGE = 10
 
 def load_json(path):
