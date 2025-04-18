@@ -1,7 +1,7 @@
 [
   {
     "id": "422031",
-    "name": "1.1_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -9,7 +9,7 @@
   },
   {
     "id": "420716",
-    "name": "1.2_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -17,7 +17,7 @@
   },
   {
     "id": "419277",
-    "name": "1.3_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -25,7 +25,7 @@
   },
   {
     "id": "418212",
-    "name": "1.4_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -33,7 +33,7 @@
   },
   {
     "id": "22083",
-    "name": "1.5_AKU_?AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -41,7 +41,7 @@
   },
   {
     "id": "22292",
-    "name": "1.6_AKU_?AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -49,7 +49,7 @@
   },
   {
     "id": "22018",
-    "name": "1.7_AKU_?AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -57,7 +57,7 @@
   },
   {
     "id": "22088",
-    "name": "1.8_AKU_?AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -65,7 +65,7 @@
   },
   {
     "id": "22314",
-    "name": "1.10_AKU_?AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -73,7 +73,7 @@
   },
   {
     "id": "36628",
-    "name": "1.12_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -81,7 +81,7 @@
   },
   {
     "id": "36864",
-    "name": "1.13_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -89,7 +89,7 @@
   },
   {
     "id": "36284",
-    "name": "1.14_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -97,7 +97,7 @@
   },
   {
     "id": "36129",
-    "name": "1.15_AKU_5AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -105,7 +105,7 @@
   },
   {
     "id": "35515",
-    "name": "1.17_AKU_5AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -113,7 +113,7 @@
   },
   {
     "id": "35543",
-    "name": "1.18_AKU_5AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -121,7 +121,7 @@
   },
   {
     "id": "35652",
-    "name": "1.20_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -129,7 +129,7 @@
   },
   {
     "id": "35679",
-    "name": "1.21_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -137,7 +137,7 @@
   },
   {
     "id": "35659",
-    "name": "1.23_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -145,7 +145,7 @@
   },
   {
     "id": "35390",
-    "name": "1.24_AKU_2AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -153,7 +153,7 @@
   },
   {
     "id": "35318",
-    "name": "1.25_AKU_2AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -161,7 +161,7 @@
   },
   {
     "id": "35613",
-    "name": "1.26_AKU_3,3AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -169,7 +169,7 @@
   },
   {
     "id": "35608",
-    "name": "1.27_AKU_2AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Aleksei Panin",
@@ -177,7 +177,7 @@
   },
   {
     "id": "35767",
-    "name": "1.28_AKU_4AH_12V",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -185,7 +185,7 @@
   },
   {
     "id": "11054",
-    "name": "1.32_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -193,7 +193,7 @@
   },
   {
     "id": "11025",
-    "name": "1.33_AKU_5AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -201,7 +201,7 @@
   },
   {
     "id": "10998",
-    "name": "1.34_AKU_4AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -209,7 +209,7 @@
   },
   {
     "id": "10262",
-    "name": "1.35_AKU_6AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -217,7 +217,7 @@
   },
   {
     "id": "11245",
-    "name": "1.36_AKU_4AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -225,7 +225,7 @@
   },
   {
     "id": "10548",
-    "name": "1.37_AKU_4AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -233,7 +233,7 @@
   },
   {
     "id": "10523",
-    "name": "1.38_AKU_4AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -241,7 +241,7 @@
   },
   {
     "id": "10361",
-    "name": "1.39_AKU_5AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -249,7 +249,7 @@
   },
   {
     "id": "10294",
-    "name": "1.41_AKU_5AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -257,7 +257,7 @@
   },
   {
     "id": "11325",
-    "name": "1.42_AKU_5AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -265,7 +265,7 @@
   },
   {
     "id": "11382",
-    "name": "1.44_AKU_5AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -273,7 +273,7 @@
   },
   {
     "id": "11823",
-    "name": "1.49_AKU_5AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -281,7 +281,7 @@
   },
   {
     "id": "11642",
-    "name": "1.50_AKU_5AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -289,7 +289,7 @@
   },
   {
     "id": "11635",
-    "name": "1.51_AKU_5AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -297,7 +297,7 @@
   },
   {
     "id": "21840",
-    "name": "1.53_AKU_6AH_18V",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -305,7 +305,7 @@
   },
   {
     "id": "21918",
-    "name": "1.56_AKU_5AH_18V",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -313,7 +313,7 @@
   },
   {
     "id": "35321",
-    "name": "1.57_AKU_2AH_18V",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -321,7 +321,7 @@
   },
   {
     "id": "nan",
-    "name": "1.58_AKU_2AH_18V",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -329,7 +329,7 @@
   },
   {
     "id": "nan",
-    "name": "1.59_AKU_2AH_18V",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -337,7 +337,7 @@
   },
   {
     "id": "nan",
-    "name": "1.60_AKU_2AH_18V",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -345,7 +345,7 @@
   },
   {
     "id": "nan",
-    "name": "1.61_AKU_2AH_18V",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -353,7 +353,7 @@
   },
   {
     "id": "nan",
-    "name": "1.62_AKU_2AH_18V",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -361,7 +361,7 @@
   },
   {
     "id": "22006",
-    "name": "1.63_AKU_2AH",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -369,7 +369,7 @@
   },
   {
     "id": "nan",
-    "name": "1.64_AKU_3,3AH_21,6V",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -377,7 +377,7 @@
   },
   {
     "id": "nan",
-    "name": "1.65_AKU_6A",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -385,7 +385,7 @@
   },
   {
     "id": "22392",
-    "name": "10.1_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -393,7 +393,7 @@
   },
   {
     "id": "422830",
-    "name": "10.2_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -401,7 +401,7 @@
   },
   {
     "id": "421193",
-    "name": "10.3_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -409,7 +409,7 @@
   },
   {
     "id": "36372",
-    "name": "10.4_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -417,7 +417,7 @@
   },
   {
     "id": "22089",
-    "name": "10.5_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -425,7 +425,7 @@
   },
   {
     "id": "22182",
-    "name": "10.6_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -433,7 +433,7 @@
   },
   {
     "id": "10374",
-    "name": "10.7_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Jagala",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -441,7 +441,7 @@
   },
   {
     "id": "10385",
-    "name": "10.8_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -449,7 +449,7 @@
   },
   {
     "id": "11160",
-    "name": "10.9_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -457,7 +457,7 @@
   },
   {
     "id": "11442",
-    "name": "10.11_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Andrei Marchak",
@@ -465,7 +465,7 @@
   },
   {
     "id": "11547",
-    "name": "10.12_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -473,7 +473,7 @@
   },
   {
     "id": "421942",
-    "name": "10.13_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -481,7 +481,7 @@
   },
   {
     "id": "10166",
-    "name": "10.15_L.KK_ACU",
+    "name": "10_Löökkruvikeeraja (Удар. дрель шур.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -489,7 +489,7 @@
   },
   {
     "id": "36888",
-    "name": "11.1_Mixer",
+    "name": "11_Mixer",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -497,7 +497,7 @@
   },
   {
     "id": "22144",
-    "name": "12.1_Neetm",
+    "name": "12_Needipüstol (Заклеп.)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -505,7 +505,7 @@
   },
   {
     "id": "22346",
-    "name": "12.2_Neetm",
+    "name": "12_Needipüstol (Заклеп.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -513,7 +513,7 @@
   },
   {
     "id": "35307",
-    "name": "12.3_Neetm",
+    "name": "12_Needipüstol (Заклеп.)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -521,7 +521,7 @@
   },
   {
     "id": "10802",
-    "name": "12.4_Neetm_12A",
+    "name": "12_Needipüstol (Заклеп.)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -529,7 +529,7 @@
   },
   {
     "id": "10568",
-    "name": "12.5_Neetm_12A",
+    "name": "12_Needipüstol (Заклеп.)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -537,7 +537,7 @@
   },
   {
     "id": "11181",
-    "name": "12.6_Neetm_12A",
+    "name": "12_Needipüstol (Заклеп.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -545,7 +545,7 @@
   },
   {
     "id": "nan",
-    "name": "12.8_Neetm_12A",
+    "name": "12_Needipüstol (Заклеп.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -553,7 +553,7 @@
   },
   {
     "id": "nan",
-    "name": "13.1_Pleamp_5W_LED",
+    "name": "13_Pealamp (Налоб. фонарь)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -561,7 +561,7 @@
   },
   {
     "id": "10933",
-    "name": "14.1_Rull_50M",
+    "name": "14_Pikendusjuhe (Удлинитель)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -569,7 +569,7 @@
   },
   {
     "id": "36529",
-    "name": "14.2_Rull_",
+    "name": "14_Pikendusjuhe (Удлинитель)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -577,7 +577,7 @@
   },
   {
     "id": "11393",
-    "name": "14.3_Rull_40M",
+    "name": "14_Pikendusjuhe (Удлинитель)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -585,7 +585,7 @@
   },
   {
     "id": "11897",
-    "name": "14.5_Rull_25M",
+    "name": "14_Pikendusjuhe (Удлинитель)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -593,7 +593,7 @@
   },
   {
     "id": "36879",
-    "name": "15.1_Proz_",
+    "name": "15_Prožektor (Прожектор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -601,7 +601,7 @@
   },
   {
     "id": "36923",
-    "name": "15.2_Proz_100W",
+    "name": "15_Prožektor (Прожектор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -609,7 +609,7 @@
   },
   {
     "id": "11914",
-    "name": "15.4_Proz_",
+    "name": "15_Prožektor (Прожектор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -617,7 +617,7 @@
   },
   {
     "id": "11907",
-    "name": "15.5_Proz_",
+    "name": "15_Prožektor (Прожектор)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -625,7 +625,7 @@
   },
   {
     "id": "10266",
-    "name": "16.1_Puh_AKU",
+    "name": "16_Puhur (Воздуходувка)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -633,7 +633,7 @@
   },
   {
     "id": "nan",
-    "name": "16.2_Puh_AKU",
+    "name": "16_Puhur (Воздуходувка)",
     "object": "Regati",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -641,7 +641,7 @@
   },
   {
     "id": "10495",
-    "name": "17.1_Puur_SDS",
+    "name": "17_Puurvasaar (Перфоратор)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -649,7 +649,7 @@
   },
   {
     "id": "21862",
-    "name": "17.2_Puur_SDS",
+    "name": "17_Puurvasaar (Перфоратор)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -657,7 +657,7 @@
   },
   {
     "id": "10941",
-    "name": "17.3_Puur_SDS",
+    "name": "17_Puurvasaar (Перфоратор)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -665,7 +665,7 @@
   },
   {
     "id": "11687",
-    "name": "17.4_Puur_SDS_AKU",
+    "name": "17_Puurvasaar (Перфоратор)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -673,7 +673,7 @@
   },
   {
     "id": "35354",
-    "name": "18.1_Raadio",
+    "name": "18_Raadio",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -681,7 +681,7 @@
   },
   {
     "id": "nan",
-    "name": "18.2_Raadio",
+    "name": "18_Raadio",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -689,7 +689,7 @@
   },
   {
     "id": "35937",
-    "name": "19.3_Redel_8M",
+    "name": "19_Redel (Лест и стрем)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -697,7 +697,7 @@
   },
   {
     "id": "10211",
-    "name": "19.6_Redel_1",
+    "name": "19_Redel (Лест и стрем)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -705,7 +705,7 @@
   },
   {
     "id": "10202",
-    "name": "19.8_Redel",
+    "name": "19_Redel (Лест и стрем)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -713,7 +713,7 @@
   },
   {
     "id": "11841",
-    "name": "19.9_Redel",
+    "name": "19_Redel (Лест и стрем)",
     "object": "Jagala",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -721,7 +721,7 @@
   },
   {
     "id": "22096",
-    "name": "2.1_Compressor_50L",
+    "name": "2_Compressor",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -729,7 +729,7 @@
   },
   {
     "id": "22409",
-    "name": "20.1_Rel_125A",
+    "name": "20_Relakas (Болгарка)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -737,7 +737,7 @@
   },
   {
     "id": "22353",
-    "name": "20.2_Rel_125A",
+    "name": "20_Relakas (Болгарка)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -745,7 +745,7 @@
   },
   {
     "id": "36226",
-    "name": "20.3_Rel_125A",
+    "name": "20_Relakas (Болгарка)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -753,7 +753,7 @@
   },
   {
     "id": "35602",
-    "name": "20.4_Rel_Mut.töör",
+    "name": "20_Relakas (Болгарка)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -761,7 +761,7 @@
   },
   {
     "id": "35452",
-    "name": "20.5_Rel_125A",
+    "name": "20_Relakas (Болгарка)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -769,7 +769,7 @@
   },
   {
     "id": "10571",
-    "name": "20.6_Rel_125A",
+    "name": "20_Relakas (Болгарка)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -777,7 +777,7 @@
   },
   {
     "id": "10633",
-    "name": "20.7_Rel_125A",
+    "name": "20_Relakas (Болгарка)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -785,7 +785,7 @@
   },
   {
     "id": "10729",
-    "name": "20.9_Rel_125A",
+    "name": "20_Relakas (Болгарка)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -793,7 +793,7 @@
   },
   {
     "id": "35695",
-    "name": "20.10_Rel_125A",
+    "name": "20_Relakas (Болгарка)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -801,7 +801,7 @@
   },
   {
     "id": "10557",
-    "name": "20.11_Rel_230J",
+    "name": "20_Relakas (Болгарка)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -809,7 +809,7 @@
   },
   {
     "id": "11420",
-    "name": "20.12_Rel_125A",
+    "name": "20_Relakas (Болгарка)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -817,7 +817,7 @@
   },
   {
     "id": "10022",
-    "name": "20.13_Rel_125A",
+    "name": "20_Relakas (Болгарка)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -825,7 +825,7 @@
   },
   {
     "id": "10014",
-    "name": "20.14_Rel_125A",
+    "name": "20_Relakas (Болгарка)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -833,7 +833,7 @@
   },
   {
     "id": "37085",
-    "name": "21.1_RullPus",
+    "name": "21_Rull naela püstol (Пист. для вагонки)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -841,7 +841,7 @@
   },
   {
     "id": "36293",
-    "name": "22.1_Sil.pus",
+    "name": "22_Silikooni Püstol (Сил. пистолет)",
     "object": "Jagala",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -849,7 +849,7 @@
   },
   {
     "id": "36743",
-    "name": "22.2_Sil.pus",
+    "name": "22_Silikooni Püstol (Сил. пистолет)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -857,7 +857,7 @@
   },
   {
     "id": "10289",
-    "name": "24.1_TG.Saag_AKU",
+    "name": "24_Tiksaagid (лобзик)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -865,7 +865,7 @@
   },
   {
     "id": "10147",
-    "name": "24.2_TG.Saag_G135",
+    "name": "24_Tiksaagid (лобзик)",
     "object": "Jagala",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -873,7 +873,7 @@
   },
   {
     "id": "nan",
-    "name": "25.1_TK_2M",
+    "name": "25_Turvavöö (Ремни безоп)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -881,7 +881,7 @@
   },
   {
     "id": "nan",
-    "name": "25.2_TK_2M",
+    "name": "25_Turvavöö (Ремни безоп)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -889,7 +889,7 @@
   },
   {
     "id": "nan",
-    "name": "25.8_TK_1,5M",
+    "name": "25_Turvavöö (Ремни безоп)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -897,7 +897,7 @@
   },
   {
     "id": "35790",
-    "name": "25.3_TK",
+    "name": "25_Turvavöö (Ремни безоп)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -905,7 +905,7 @@
   },
   {
     "id": "35773",
-    "name": "25.4_TK_S",
+    "name": "25_Turvavöö (Ремни безоп)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -913,7 +913,7 @@
   },
   {
     "id": "35785",
-    "name": "25.5_TK_S",
+    "name": "25_Turvavöö (Ремни безоп)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -921,7 +921,7 @@
   },
   {
     "id": "35915",
-    "name": "25.7_TK",
+    "name": "25_Turvavöö (Ремни безоп)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -929,7 +929,7 @@
   },
   {
     "id": "36366",
-    "name": "26.1_Trell_",
+    "name": "26_Trell (Дрель)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -937,7 +937,7 @@
   },
   {
     "id": "22031",
-    "name": "26.2_Trell_AKU",
+    "name": "26_Trell (Дрель)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -945,7 +945,7 @@
   },
   {
     "id": "36173",
-    "name": "26.5_Trell_AKU",
+    "name": "26_Trell (Дрель)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -953,7 +953,7 @@
   },
   {
     "id": "10690",
-    "name": "26.6_Trell_AKU",
+    "name": "26_Trell (Дрель)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -961,7 +961,7 @@
   },
   {
     "id": "11228",
-    "name": "26.8_Trell_AKU",
+    "name": "26_Trell (Дрель)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -969,7 +969,7 @@
   },
   {
     "id": "11174",
-    "name": "26.9_Trell_AKU",
+    "name": "26_Trell (Дрель)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -977,7 +977,7 @@
   },
   {
     "id": "11569",
-    "name": "26.12_Trell_AKU",
+    "name": "26_Trell (Дрель)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Aleksei Panin",
@@ -985,7 +985,7 @@
   },
   {
     "id": "11958",
-    "name": "26.13_Trell_AKU",
+    "name": "26_Trell (Дрель)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -993,7 +993,7 @@
   },
   {
     "id": "11949",
-    "name": "26.14_Trell_AKU",
+    "name": "26_Trell (Дрель)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1001,7 +1001,7 @@
   },
   {
     "id": "35795",
-    "name": "27.2_VPH",
+    "name": "27_Vaakum plaadi hoidja (ВАКУУМ ПРИСОСКИ)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Вариант 19",
@@ -1009,7 +1009,7 @@
   },
   {
     "id": "36876",
-    "name": "27.4_VPH",
+    "name": "27_Vaakum plaadi hoidja (ВАКУУМ ПРИСОСКИ)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -1017,7 +1017,7 @@
   },
   {
     "id": "37070",
-    "name": "27.5_VPH",
+    "name": "27_Vaakum plaadi hoidja (ВАКУУМ ПРИСОСКИ)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1025,7 +1025,7 @@
   },
   {
     "id": "423532",
-    "name": "28.1_Met.Lõik.k_AKU",
+    "name": "28_Бытовая техника",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1033,7 +1033,7 @@
   },
   {
     "id": "21801",
-    "name": "28.2_MLA",
+    "name": "28_Бытовая техника",
     "object": "Regati",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1041,7 +1041,7 @@
   },
   {
     "id": "36780",
-    "name": "28.4_Tõm",
+    "name": "28_Бытовая техника",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1049,7 +1049,7 @@
   },
   {
     "id": "35933",
-    "name": "28.5_MLA",
+    "name": "28_Бытовая техника",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1057,7 +1057,7 @@
   },
   {
     "id": "nan",
-    "name": "29.1_TL",
+    "name": "29_Töölaud",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1065,7 +1065,7 @@
   },
   {
     "id": "nan",
-    "name": "29.2_TL",
+    "name": "29_Töölaud",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1073,7 +1073,7 @@
   },
   {
     "id": "35599",
-    "name": "30.1_AKUKR",
+    "name": "30_Akulindikruvikeeraja",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1081,7 +1081,7 @@
   },
   {
     "id": "36922",
-    "name": "3.1_Frees",
+    "name": "3_Frees (Фрезеровочник)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1089,7 +1089,7 @@
   },
   {
     "id": "11190",
-    "name": "3.2_AKU_Frees",
+    "name": "3_Frees (Фрезеровочник)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1097,7 +1097,7 @@
   },
   {
     "id": "11195",
-    "name": "3.3_AKU_Frees",
+    "name": "3_Frees (Фрезеровочник)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1105,7 +1105,7 @@
   },
   {
     "id": "22474",
-    "name": "5.1_J.Siin_1,5M",
+    "name": "5_Juhtsiin (Направ)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1113,7 +1113,7 @@
   },
   {
     "id": "22543",
-    "name": "5.2_J.Siin_1,5M",
+    "name": "5_Juhtsiin (Направ)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1121,7 +1121,7 @@
   },
   {
     "id": "nan",
-    "name": "5.3_J.Siin_1,5M",
+    "name": "5_Juhtsiin (Направ)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1129,7 +1129,7 @@
   },
   {
     "id": "36049",
-    "name": "5.5_J.Siin_1,5M",
+    "name": "5_Juhtsiin (Направ)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1137,7 +1137,7 @@
   },
   {
     "id": "10326",
-    "name": "5.9_J.Siin_1,5M",
+    "name": "5_Juhtsiin (Направ)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1145,7 +1145,7 @@
   },
   {
     "id": "22521",
-    "name": "5.16_J.Siin_",
+    "name": "5_Juhtsiin (Направ)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1153,7 +1153,7 @@
   },
   {
     "id": "22322",
-    "name": "7.1_Kettassaag",
+    "name": "7_Kettassaag (Пилы циркул)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1161,7 +1161,7 @@
   },
   {
     "id": "35601",
-    "name": "7.2_Kettassaag_JRK_SAAG",
+    "name": "7_Kettassaag (Пилы циркул)",
     "object": "Jagala",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -1169,7 +1169,7 @@
   },
   {
     "id": "36486",
-    "name": "7.3_Kettassaag_AKU_KS165",
+    "name": "7_Kettassaag (Пилы циркул)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -1177,7 +1177,7 @@
   },
   {
     "id": "10639",
-    "name": "7.4_Kettassaag_KS165J",
+    "name": "7_Kettassaag (Пилы циркул)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1185,7 +1185,7 @@
   },
   {
     "id": "11192",
-    "name": "7.5_Kettassaag_AKU_KS165",
+    "name": "7_Kettassaag (Пилы циркул)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1193,7 +1193,7 @@
   },
   {
     "id": "11638",
-    "name": "7.6_Kettassaag_AKU_KS165",
+    "name": "7_Kettassaag (Пилы циркул)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -1201,7 +1201,7 @@
   },
   {
     "id": "10077",
-    "name": "7.7_Kettassaag_KS190J",
+    "name": "7_Kettassaag (Пилы циркул)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1209,7 +1209,7 @@
   },
   {
     "id": "36147",
-    "name": "8.3_Laadija_AKU",
+    "name": "8_Laadija (Заряд. устр.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -1217,7 +1217,7 @@
   },
   {
     "id": "35636",
-    "name": "8.4_Laadija_18V",
+    "name": "8_Laadija (Заряд. устр.)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1225,7 +1225,7 @@
   },
   {
     "id": "35638",
-    "name": "8.7_Laadija_24W",
+    "name": "8_Laadija (Заряд. устр.)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -1233,7 +1233,7 @@
   },
   {
     "id": "10322",
-    "name": "8.9_Laadija_155W",
+    "name": "8_Laadija (Заряд. устр.)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1241,7 +1241,7 @@
   },
   {
     "id": "11345",
-    "name": "8.13_Laadija_240W",
+    "name": "8_Laadija (Заряд. устр.)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -1249,7 +1249,7 @@
   },
   {
     "id": "nan",
-    "name": "8.20_2x Laadija 240W",
+    "name": "8_Laadija (Заряд. устр.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1257,7 +1257,7 @@
   },
   {
     "id": "nan",
-    "name": "8.24_Laadija_240W",
+    "name": "8_Laadija (Заряд. устр.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1265,7 +1265,7 @@
   },
   {
     "id": "nan",
-    "name": "8.25_2x Laadija 240W",
+    "name": "8_Laadija (Заряд. устр.)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1273,7 +1273,7 @@
   },
   {
     "id": "21815",
-    "name": "9.1_laser",
+    "name": "9_Laser (Лазер)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -1281,7 +1281,7 @@
   },
   {
     "id": "21735",
-    "name": "9.2_laser",
+    "name": "9_Laser (Лазер)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1289,7 +1289,7 @@
   },
   {
     "id": "11585",
-    "name": "9.4_laser",
+    "name": "9_Laser (Лазер)",
     "object": "Nuia",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -1297,7 +1297,7 @@
   },
   {
     "id": "nan",
-    "name": "9.6_laser",
+    "name": "9_Laser (Лазер)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1305,7 +1305,7 @@
   },
   {
     "id": "nan",
-    "name": "8.26_Laadija 240W",
+    "name": "8_Laadija (Заряд. устр.)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1313,7 +1313,7 @@
   },
   {
     "id": "nan",
-    "name": "16.3_Puh_AKU",
+    "name": "16_Puhur (Воздуходувка)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1321,7 +1321,7 @@
   },
   {
     "id": "Без кода",
-    "name": "26.16_Trell",
+    "name": "26_Trell (Дрель)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1329,7 +1329,7 @@
   },
   {
     "id": "nan",
-    "name": "25.9_TK",
+    "name": "25_Turvavöö (Ремни безоп)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1337,7 +1337,7 @@
   },
   {
     "id": "nan",
-    "name": "25.9_TK",
+    "name": "25_Turvavöö (Ремни безоп)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1345,7 +1345,7 @@
   },
   {
     "id": "nan",
-    "name": "19.10_Redel",
+    "name": "19_Redel (Лест и стрем)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1353,7 +1353,7 @@
   },
   {
     "id": "nan",
-    "name": "19.11_Redel_1,5",
+    "name": "19_Redel (Лест и стрем)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Oleh Kiekshyn",
@@ -1361,7 +1361,7 @@
   },
   {
     "id": "nan",
-    "name": "23.1_Tellingud_RR",
+    "name": "23_Tellingud (Леса)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1369,7 +1369,7 @@
   },
   {
     "id": "nan",
-    "name": "23.2_Tellingud_R_1.35",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1377,7 +1377,7 @@
   },
   {
     "id": "nan",
-    "name": "23.3_Tellingud_R_1.35",
+    "name": "23_Tellingud (Леса)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1385,7 +1385,7 @@
   },
   {
     "id": "nan",
-    "name": "23.4_Tellingud_R_1.35",
+    "name": "23_Tellingud (Леса)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1393,7 +1393,7 @@
   },
   {
     "id": "nan",
-    "name": "23.5_Tellingud_R_1.35",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1401,7 +1401,7 @@
   },
   {
     "id": "nan",
-    "name": "23.6_Tellingud_T_3.05",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1409,7 +1409,7 @@
   },
   {
     "id": "nan",
-    "name": "23.7_Tellingud_T_2.7",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1417,7 +1417,7 @@
   },
   {
     "id": "nan",
-    "name": "23.9_Tellingud_T_2.5",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1425,7 +1425,7 @@
   },
   {
     "id": "nan",
-    "name": "23.10_Tellingud_T_2.5",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1433,7 +1433,7 @@
   },
   {
     "id": "nan",
-    "name": "23.11_Tellingud_PL_2.5",
+    "name": "23_Tellingud (Леса)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1441,7 +1441,7 @@
   },
   {
     "id": "nan",
-    "name": "23.12_Tellingud_PL_2.5",
+    "name": "23_Tellingud (Леса)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1449,7 +1449,7 @@
   },
   {
     "id": "nan",
-    "name": "23.21_Tellingud_UR",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1457,7 +1457,7 @@
   },
   {
     "id": "nan",
-    "name": "23.22_Tellingud_UR",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1465,7 +1465,7 @@
   },
   {
     "id": "nan",
-    "name": "23.23_Tellingud_MT",
+    "name": "23_Tellingud (Леса)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1473,7 +1473,7 @@
   },
   {
     "id": "nan",
-    "name": "23.24_Tellingud_MT",
+    "name": "23_Tellingud (Леса)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1481,7 +1481,7 @@
   },
   {
     "id": "nan",
-    "name": "23.25_Tellingud_R_1.35",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1489,7 +1489,7 @@
   },
   {
     "id": "nan",
-    "name": "23.26_Tellingud_RR_300",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1497,7 +1497,7 @@
   },
   {
     "id": "nan",
-    "name": "23.27_Tellingud_T_3.05",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1505,7 +1505,7 @@
   },
   {
     "id": "nan",
-    "name": "23.28_Tellingud_PL_2.5",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1513,7 +1513,7 @@
   },
   {
     "id": "nan",
-    "name": "23.29_Tellingud_PL_2.5",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1521,7 +1521,7 @@
   },
   {
     "id": "nan",
-    "name": "23.30_Tellingud_PL_2.5",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1529,7 +1529,7 @@
   },
   {
     "id": "nan",
-    "name": "23.31_Tellingud_T_3.05",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1537,7 +1537,7 @@
   },
   {
     "id": "nan",
-    "name": "23.32_Tellingud_T_2.5",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1545,7 +1545,7 @@
   },
   {
     "id": "nan",
-    "name": "23.33_Tellingud_T_2.7",
+    "name": "23_Tellingud (Леса)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1553,7 +1553,7 @@
   },
   {
     "id": "36351",
-    "name": "6.2_Ava tangid",
+    "name": "6_Käsitööriistad (Руч.инстp)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1561,7 +1561,7 @@
   },
   {
     "id": "11620",
-    "name": "9.5_laser",
+    "name": "9_Laser (Лазер)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1569,7 +1569,7 @@
   },
   {
     "id": "10873",
-    "name": "5.15_J.Siin_1,5M",
+    "name": "5_Juhtsiin (Направ)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1577,7 +1577,7 @@
   },
   {
     "id": "nan",
-    "name": "3.4_AKU_Frees",
+    "name": "3_Frees (Фрезеровочник)",
     "object": "Luise",
     "status": "в работе",
     "responsible": "Vitali Kulak",
@@ -1585,7 +1585,7 @@
   },
   {
     "id": "nan",
-    "name": "19.12_Redel",
+    "name": "19_Redel (Лест и стрем)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1593,7 +1593,7 @@
   },
   {
     "id": "nan",
-    "name": "Nurgasaag (Угловая циркулярная пила)",
+    "name": "7_Kettassaag (Пилы циркул)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -1601,7 +1601,7 @@
   },
   {
     "id": "10401",
-    "name": "5.11_J.Siin_3,0M",
+    "name": "5_Juhtsiin (Направ)",
     "object": "Sepa",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1609,7 +1609,7 @@
   },
   {
     "id": "nan",
-    "name": "28.6_Veekeetja",
+    "name": "28_Бытовая техника",
     "object": "Regati",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1617,7 +1617,7 @@
   },
   {
     "id": "nan",
-    "name": "24.3_TG.Saag_135",
+    "name": "24_Tiksaagid (лобзик)",
     "object": "Regati",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1625,7 +1625,7 @@
   },
   {
     "id": "35913",
-    "name": "19.13_Redel",
+    "name": "19_Redel (Лест и стрем)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1633,7 +1633,7 @@
   },
   {
     "id": "nan",
-    "name": "17.5_Puur_SDS_AKU",
+    "name": "17_Puurvasaar (Перфоратор)",
     "object": "Regati",
     "status": "в работе",
     "responsible": "Dmitri Karalko",
@@ -1641,7 +1641,7 @@
   },
   {
     "id": "nan",
-    "name": "17.6_Puur_SDS_AKU",
+    "name": "17_Puurvasaar (Перфоратор)",
     "object": "Regati",
     "status": "в работе",
     "responsible": "Dmitri Kralya",
@@ -1649,7 +1649,7 @@
   },
   {
     "id": "35431",
-    "name": "15.6_Proz_",
+    "name": "15_Prožektor (Прожектор)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1657,7 +1657,7 @@
   },
   {
     "id": "10625",
-    "name": "5.10_J.Siin_1,5M",
+    "name": "5_Juhtsiin (Направ)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1665,7 +1665,7 @@
   },
   {
     "id": "10398",
-    "name": "5.11_J.Siin_1,5M",
+    "name": "5_Juhtsiin (Направ)",
     "object": "Ladu",
     "status": "в работе",
     "responsible": "Shamil Kurbanov",
@@ -1673,7 +1673,7 @@
   },
   {
     "id": "nan",
-    "name": "17.7_Puur_SDS_AKU",
+    "name": "17_Puurvasaar (Перфоратор)",
     "object": "Regati",
     "status": "в работе",
     "responsible": "Vladyslav Parkhomenko",
@@ -1681,7 +1681,7 @@
   },
   {
     "id": "21875",
-    "name": "1.66_AKU_6A",
+    "name": "1_Aku (Аккумулятор)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -1689,7 +1689,7 @@
   },
   {
     "id": "21945",
-    "name": "8.27_Laadija_2_18V-14.4V",
+    "name": "8_Laadija (Заряд. устр.)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -1697,7 +1697,7 @@
   },
   {
     "id": "21803",
-    "name": "20.15_Multitool",
+    "name": "20_Relakas (Болгарка)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -1705,7 +1705,7 @@
   },
   {
     "id": "21944",
-    "name": "7.8_Kettassaag_AKU_DHS660",
+    "name": "7_Kettassaag (Пилы циркул)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
@@ -1713,7 +1713,7 @@
   },
   {
     "id": "21843",
-    "name": "5.12_J.Siin_3,0M",
+    "name": "5_Juhtsiin (Направ)",
     "object": "Laanelille",
     "status": "в работе",
     "responsible": "Sergei Strunchuk",
