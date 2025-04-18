@@ -50,7 +50,7 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def show_supervisor_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools")],
-        [InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]
+        [InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]
     ]
     markup = InlineKeyboardMarkup(keyboard)
     if update.message:
@@ -92,7 +92,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("Извините, вы не зарегистрированы в системе.")
 
-# === КНОПКИ ===
+# === ОБРАБОТКА КНОПОК ===
 async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -104,14 +104,15 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif action == "dev_as_supervisor":
         await show_supervisor_menu(update, context)
     elif action == "dev_menu":
-        await query.edit_message_text("Раздел разработчика — скоро.")
+        await query.edit_message_text("Раздел разработчика — скоро.",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
     elif action == "my_tools":
         tools = load_json("data/tools.json")
         my = [t for t in tools if t.get("responsible_id") == user_id]
         msg = "Твои инструменты:\n\n" if my else "У тебя нет прикреплённых инструментов."
         for t in my:
             msg += f"• {t['name']} — {t['object']} ({t['status']})\n"
-        markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
+        markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
         await query.edit_message_text(msg, reply_markup=markup)
     elif action == "all_tools":
         tools = load_json("data/tools.json")
@@ -120,10 +121,11 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for t in tools:
             f_name = next((f["name"] for f in foremen if f["id"] == t["responsible_id"]), "неизвестен")
             msg += f"• {t['name']} — {t['object']} ({t['status']}), ответственный: {f_name}\n"
-        markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
+        markup = InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
         await query.edit_message_text(msg, reply_markup=markup)
     elif action == "transfer_tool":
-        await query.edit_message_text("Отправь ID инструмента, который хочешь передать.")
+        await query.edit_message_text("Отправь ID инструмента, который хочешь передать.",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
         context.user_data["transfer_stage"] = "waiting_for_tool_id"
     elif action.startswith("give_to_"):
         receiver_id = int(action.split("_")[-1])
@@ -144,33 +146,40 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 [InlineKeyboardButton("❌ Отказаться", callback_data="cancel_transfer")]
             ])
         )
-        await query.edit_message_text("Запрос отправлен. Ожидаем подтверждения.")
+        await query.edit_message_text("Запрос отправлен. Ожидаем подтверждения.",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
     elif action.startswith("confirm_"):
         tool_id = action.split("_")[1]
         pending = load_pending()
         transfer = pending.get(tool_id)
         if not transfer:
-            await query.edit_message_text("Передача не найдена или уже подтверждена.")
+            await query.edit_message_text("Передача не найдена или уже подтверждена.",
+                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
             return
         tools = load_json("data/tools.json")
         for t in tools:
             if str(t["id"]) == tool_id:
                 t["responsible_id"] = user_id
         save_json("data/tools.json", tools)
-        await query.edit_message_text("Инструмент успешно принят.")
-        await context.bot.send_message(transfer["from_id"], "Инструмент передан и принят.")
         del pending[tool_id]
         save_pending(pending)
+        await query.edit_message_text("Инструмент успешно принят.",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+        await context.bot.send_message(transfer["from_id"], "Инструмент передан и принят.")
     elif action == "cancel_transfer":
-        await query.edit_message_text("Передача отменена.")
+        await query.edit_message_text("Передача отменена.",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
     elif action == "return_tool":
-        await query.edit_message_text("Сканируй QR-код для возврата.")
+        await query.edit_message_text("Сканируй QR-код для возврата.",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
     elif action == "add_tool":
-        await query.edit_message_text("Введи данные нового инструмента.")
+        await query.edit_message_text("Введи данные нового инструмента.",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
     elif action == "back_to_menu":
         await show_foreman_menu(update, context)
     else:
-        await query.edit_message_text("Неизвестное действие.")
+        await query.edit_message_text("Неизвестное действие.",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
 
 # === ОБРАБОТКА СООБЩЕНИЙ ===
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -191,7 +200,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["transfer_stage"] = "select_receiver"
         buttons = [[InlineKeyboardButton(f["name"], callback_data=f"give_to_{f['id']}")]
                    for f in foremen if f["id"] != user_id]
-        buttons.append([InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")])
+        buttons.append([InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")])
         await update.message.reply_text(
             f"{tool['name']} ({tool['object']})\nКому передаём?",
             reply_markup=InlineKeyboardMarkup(buttons)
