@@ -7,7 +7,7 @@ import json
 import os
 
 BOT_TOKEN = "7500703930:AAFaxpYm7mcMYkosPz2Hru9uBYaMsyOD8xY"
-DEVELOPER_ID = []
+DEVELOPER_ID = [987664835]
 ITEMS_PER_PAGE = 10
 
 def load_json(path):
@@ -34,6 +34,8 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("📋 Мои инструменты", callback_data="my_tools")],
         [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools_0")],
+        [InlineKeyboardButton("🔎 Найти инструмент", callback_data="search_tool")],
+        [InlineKeyboardButton("🆔 Найти по ID", callback_data="search_by_id")]
         [InlineKeyboardButton("📦 Передать инструмент", callback_data="transfer_tool")],
         [InlineKeyboardButton("✅ Вернуть на склад", callback_data="return_tool")],
         [InlineKeyboardButton("➕ Добавить инструмент", callback_data="add_tool")]
@@ -47,6 +49,8 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def show_supervisor_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools_0")],
+        [InlineKeyboardButton("🔎 Найти инструмент", callback_data="search_tool")],
+        [InlineKeyboardButton("🆔 Найти по ID", callback_data="search_by_id")]
         [InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]
     ]
     markup = InlineKeyboardMarkup(keyboard)
@@ -186,6 +190,25 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif action == "add_tool":
         await query.edit_message_text("Введи данные нового инструмента.",
                                       reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+    
+    elif action == "search_tool":
+        await query.edit_message_text("Введи название или часть названия инструмента для поиска:",
+                                  reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+        context.user_data["awaiting_search"] = True
+
+    elif action == "search_by_id":
+        await query.edit_message_text("Введи ID инструмента (например: 23.12):",
+                                  reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+        context.user_data["awaiting_id_search"] = True
+    elif action == "search_by_id":
+        await query.edit_message_text("Введи ID инструмента (например: 23.12):",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+        context.user_data["awaiting_id_search"] = True
+
+        await query.edit_message_text("Введи название или часть названия инструмента для поиска:",
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]]))
+        context.user_data["awaiting_search"] = True
+
     elif action == "back_to_menu":
         await show_foreman_menu(update, context)
     else:
