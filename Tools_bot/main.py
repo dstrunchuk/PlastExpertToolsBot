@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, ContextTypes,
     CallbackQueryHandler, MessageHandler, filters
@@ -6,7 +6,6 @@ from telegram.ext import (
 import json
 import os
 from dotenv import load_dotenv
-from telegram import WebAppInfo
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -18,6 +17,7 @@ def load_json(path):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
+# === /start ===
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Добро пожаловать в Plast Expert Tools!")
     user_id = update.effective_user.id
@@ -36,6 +36,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("Извините, вы не зарегистрированы в системе.")
 
+# === Меню бригадира ===
 async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("📋 Мои инструменты", callback_data="my_tools")],
@@ -48,6 +49,7 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif update.callback_query:
         await update.callback_query.message.edit_text("Выберите действие:", reply_markup=markup)
 
+# === Обработка нажатий кнопок ===
 async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -71,7 +73,7 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text("У тебя пока нет прикреплённых инструментов.",
                                           reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
         else:
-            msg = "Твои инструменты:"
+            msg = "Твои инструменты:\n\n"
             for t in user_tools:
                 msg += f"• {t['name']} — {t['object']} ({t['status']})\n"
             await query.edit_message_text(msg,
@@ -80,12 +82,9 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif action == "all_tools":
         tools = load_json("data/tools.json")
         foremen = load_json("data/foremen.json")
-
         if not tools:
-            await query.edit_message_text(
-                "Инструмент пока не добавлен.",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
-            )
+            await query.edit_message_text("Инструмент пока не добавлен.",
+                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
             return
 
         msg = "Весь инструмент:\n\n"
@@ -95,11 +94,10 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             msg += f"• {t['name']} — {t['object']} ({t['status']}) — {responsible}\n"
 
-        await query.edit_message_text(
-            msg,
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
-        )
+        await query.edit_message_text(msg,
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
 
+# === Сообщения от пользователя ===
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
     tools = load_json("data/tools.json")
@@ -128,8 +126,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             msg,
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
         )
-        return
 
+# === Запуск приложения ===
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start_command))
 app.add_handler(CallbackQueryHandler(handle_callbacks))
