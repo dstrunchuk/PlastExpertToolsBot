@@ -79,16 +79,23 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif action.startswith("all_tools_"):
         tools = load_json("data/tools.json")
-        msg = "Весь инструмент:\n"
+        foremen = load_json("data/foremen.json")
+
+        if not tools:
+            await query.edit_message_text("Инструмент пока не добавлен.",
+                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
+            return
+
+        msg = "Весь инструмент:\n\n"
         for t in tools:
             responsible = t.get("responsible") or next(
-                (f["name"] for f in foremen if f["id"] == t.get("responsible_id")), "не назначен"
+                (f["name"] for f in foremen if f["id"] == t.get("responsible_id")),
+                "не назначен"
             )
             msg += f"• {t['name']} — {t['object']} ({t['status']}) — {responsible}\n"
-        await query.edit_message_text(
-            msg,
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
-        ) 
+
+        await query.edit_message_text(msg,
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
