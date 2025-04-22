@@ -142,6 +142,31 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
         )
 
+async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    data = update.message.web_app_data.data
+    tool_id = data.strip()
+
+    tools = load_json("data/tools.json")
+    foremen = load_json("data/foremen.json")
+    tool = next((t for t in tools if str(t["id"]) == tool_id), None)
+
+    if not tool:
+        await update.message.reply_text("Инструмент не найден.")
+        return
+
+    responsible = tool.get("responsible") or next(
+        (f["name"] for f in foremen if f["id"] == tool.get("responsible_id")), "не назначен"
+    )
+    msg = (
+        f"Название: {tool['name']}\n"
+        f"Объект: {tool['object']}\n"
+        f"Статус: {tool['status']}\n"
+        f"Ответственный: {responsible}"
+    )
+    await update.message.reply_text(msg)
+
+app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
+
 # === Запуск приложения ===
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start_command))

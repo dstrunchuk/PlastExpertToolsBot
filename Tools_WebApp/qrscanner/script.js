@@ -4,12 +4,11 @@ window.onload = () => {
   if (window.Telegram && window.Telegram.WebApp) {
     tg = window.Telegram.WebApp;
     tg.ready();
-  } else {
-    console.warn("Не в Telegram WebApp — включён тестовый режим.");
-    tg = {
-      sendData: (d) => alert("Эмуляция sendData: " + d),
-      close: () => alert("Эмуляция закрытия WebApp")
-    };
+  }
+
+  if (!tg) {
+    document.getElementById("status").innerText = "Ошибка: Telegram WebApp не инициализировался.";
+    return;
   }
 
   if (typeof Html5Qrcode === "undefined") {
