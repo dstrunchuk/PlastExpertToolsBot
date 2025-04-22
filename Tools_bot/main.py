@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ITEMS_PER_PAGE = 10
+ITEMS_PER_PAGE = 5
 
 def load_json(filename):
     base_dir = os.path.join(os.path.dirname(__file__), "data")
@@ -67,14 +67,19 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_tools = [t for t in tools if t.get("responsible_id") == user_id]
         if not user_tools:
             await query.edit_message_text("У тебя пока нет прикреплённых инструментов.",
-                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
         else:
             msg = "Твои инструменты:\n\n"
             for t in user_tools:
-                msg += f"• {t['name']}\nОбъект: {t['object']}\nСтатус: {t['status']}\n────────────\n"
+                msg += (
+                    f"• {t['name']}\n"
+                    f"Объект: {t['object']}\n"
+                    f"Статус: {t['status']}\n"
+                    f"────────────\n"
+                )
             await query.edit_message_text(msg,
                                           reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
-
+        
     elif action.startswith("all_tools_"):
         page = int(action.split("_")[-1])
         tools = load_json("tools.json")
