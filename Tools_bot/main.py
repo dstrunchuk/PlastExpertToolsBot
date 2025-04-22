@@ -12,9 +12,10 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 ITEMS_PER_PAGE = 10
 
 def load_json(path):
-    if not os.path.exists(path):
+    full_path = os.path.join(os.path.dirname(__file__), "data", os.path.basename(path))
+    if not os.path.exists(full_path):
         return []
-    with open(path, "r", encoding="utf-8") as f:
+    with open(full_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 # === /start ===
