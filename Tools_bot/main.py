@@ -6,6 +6,7 @@ from telegram.ext import (
 import json
 import os
 from dotenv import load_dotenv
+from telegram import WebAppInfo
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -39,10 +40,7 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("📋 Мои инструменты", callback_data="my_tools")],
         [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools_0")],
-        InlineKeyboardButton(
-            "📷 Сканировать QR",
-            web_app=WebAppInfo(url="https://plast-expert-tools-bot.vercel.app/")
-        )
+        [InlineKeyboardButton("📷 Сканировать QR", web_app=WebAppInfo(url="https://plast-expert-tools-bot.vercel.app/"))]
     ]
     markup = InlineKeyboardMarkup(keyboard)
     if update.message:
@@ -78,6 +76,19 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 msg += f"• {t['name']} — {t['object']} ({t['status']})\n"
             await query.edit_message_text(msg,
                                           reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
+
+    elif action.startswith("all_tools_"):
+        tools = load_json("data/tools.json")
+        msg = "Весь инструмент:\n"
+        for t in tools:
+            responsible = t.get("responsible") or next(
+                (f["name"] for f in foremen if f["id"] == t.get("responsible_id")), "не назначен"
+            )
+            msg += f"• {t['name']} — {t['object']} ({t['status']}) — {responsible}\n"
+        await query.edit_message_text(
+            msg,
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
+        ) 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
