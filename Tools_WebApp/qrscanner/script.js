@@ -1,6 +1,15 @@
-const tg = window.Telegram.WebApp;
-tg.ready();
+let tg;
 
+if (window.Telegram && window.Telegram.WebApp) {
+  tg = window.Telegram.WebApp;
+  tg.ready();
+} else {
+  console.warn("Не в Telegram WebApp — включён тестовый режим.");
+  tg = {
+    sendData: (d) => alert("Эмуляция sendData: " + d),
+    close: () => alert("Эмуляция закрытия WebApp")
+  };
+}
 function onScanSuccess(decodedText, decodedResult) {
   document.getElementById("status").innerText = `Сканировано: ${decodedText}`;
   
