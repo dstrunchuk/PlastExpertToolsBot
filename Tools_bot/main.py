@@ -11,13 +11,15 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ITEMS_PER_PAGE = 10
 
-def load_json(path):
-    full_path = os.path.join(os.path.dirname(__file__), "data", os.path.basename(path))
+def load_json(relative_path):
+    base_dir = os.path.dirname(__file__)  # Tools_bot/
+    full_path = os.path.join(base_dir, "data", os.path.basename(relative_path))
     if not os.path.exists(full_path):
+        print("ФАЙЛ НЕ НАЙДЕН:", full_path)
         return []
     with open(full_path, "r", encoding="utf-8") as f:
         return json.load(f)
-
+    
 # === /start ===
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Добро пожаловать в Plast Expert Tools!")
