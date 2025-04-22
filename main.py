@@ -6,7 +6,11 @@ from telegram.ext import (
 import json
 import os
 
-BOT_TOKEN = "7500703930:AAEvPawqHdW5hqohCxJrZekn3Mp8BBB1j6U"
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 ITEMS_PER_PAGE = 10
 
 def load_json(path):
