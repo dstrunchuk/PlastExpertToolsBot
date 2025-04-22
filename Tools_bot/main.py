@@ -39,7 +39,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("📋 Мои инструменты", callback_data="my_tools")],
-        [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools_0")],
+        [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools")],
         [InlineKeyboardButton("📷 Сканировать QR", web_app=WebAppInfo(url="https://plast-expert-tools-bot.vercel.app/"))]
     ]
     markup = InlineKeyboardMarkup(keyboard)
@@ -77,7 +77,7 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(msg,
                                           reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
 
-    elif action.startswith("all_tools_"):
+    elif action == "all_tools":
         tools = load_json("data/tools.json")
         foremen = load_json("data/foremen.json")
 
