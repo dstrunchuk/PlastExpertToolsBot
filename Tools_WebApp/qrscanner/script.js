@@ -15,6 +15,11 @@ window.onload = () => {
   const html5QrCode = new Html5Qrcode("reader");
 
   Html5Qrcode.getCameras().then(devices => {
+    if (typeof Html5Qrcode === "undefined") {
+      document.getElementById("status").innerText = "QR-библиотека не загрузилась.";
+      console.error("Html5Qrcode не определён");
+      return;
+    }
     if (devices && devices.length) {
       html5QrCode.start(
         { facingMode: "environment" },
