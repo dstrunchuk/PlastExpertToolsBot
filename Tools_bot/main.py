@@ -39,7 +39,10 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("📋 Мои инструменты", callback_data="my_tools")],
         [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools_0")],
-        [InlineKeyboardButton("📷 Сканировать QR", callback_data="scan_qr")]
+        InlineKeyboardButton(
+            "📷 Сканировать QR",
+            web_app=WebAppInfo(url="https://plast-expert-tools-bot.vercel.app/")
+        )
     ]
     markup = InlineKeyboardMarkup(keyboard)
     if update.message:
