@@ -19,13 +19,13 @@ def load_json(filename):
         return []
     with open(full_path, "r", encoding="utf-8") as f:
         return json.load(f)
-    
+
 # === /start ===
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Добро пожаловать в Plast Expert Tools!")
     user_id = update.effective_user.id
-    foremen = load_json("data/foremen.json")
-    users = load_json("data/users.json")
+    foremen = load_json("foremen.json")
+    users = load_json("users.json")
 
     for f in foremen:
         if f["id"] == user_id:
@@ -43,7 +43,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("📋 Мои инструменты", callback_data="my_tools")],
-        [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools")],
+        [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools_0")],
         [InlineKeyboardButton("📷 Сканировать QR", web_app=WebAppInfo(url="https://plast-expert-tools-bot.vercel.app/"))]
     ]
     markup = InlineKeyboardMarkup(keyboard)
@@ -52,25 +52,18 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif update.callback_query:
         await update.callback_query.message.edit_text("Выберите действие:", reply_markup=markup)
 
-# === Обработка нажатий кнопок ===
+# === Обработка кнопок ===
 async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     action = query.data
+    user_id = query.from_user.id
 
     if action == "back_to_menu":
         return await show_foreman_menu(update, context)
 
-    if action == "scan_qr":
-        context.user_data["awaiting_qr_scan"] = True
-        await query.edit_message_text(
-            "Сканируй QR-код — бот сразу покажет информацию.",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
-        )
-
     elif action == "my_tools":
-        user_id = query.from_user.id
-        tools = load_json("data/tools.json")
+        tools = load_json("tools.json")
         user_tools = [t for t in tools if t.get("responsible_id") == user_id]
         if not user_tools:
             await query.edit_message_text("У тебя пока нет прикреплённых инструментов.",
@@ -78,33 +71,47 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             msg = "Твои инструменты:\n\n"
             for t in user_tools:
-                msg += f"• {t['name']} — {t['object']} ({t['status']})\n"
+                msg += f"• {t['name']}\nОбъект: {t['object']}\nСтатус: {t['status']}\n────────────\n"
             await query.edit_message_text(msg,
                                           reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
 
-    elif action == "all_tools":
-        tools = load_json("data/tools.json")
-        foremen = load_json("data/foremen.json")
-        if not tools:
-            await query.edit_message_text("Инструмент пока не добавлен.",
-                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
+    elif action.startswith("all_tools_"):
+        page = int(action.split("_")[-1])
+        tools = load_json("tools.json")
+        foremen = load_json("foremen.json")
+        total_pages = (len(tools) - 1) // ITEMS_PER_PAGE + 1
+        start = page * ITEMS_PER_PAGE
+        end = start + ITEMS_PER_PAGE
+        page_tools = tools[start:end]
+
+        if not page_tools:
+            await query.edit_message_text("Инструмент не найден.")
             return
 
-        msg = "Весь инструмент:\n\n"
-        for t in tools:
+        msg = f"Весь инструмент (страница {page+1} из {total_pages}):\n\n"
+        for t in page_tools:
             responsible = t.get("responsible") or next(
                 (f["name"] for f in foremen if f["id"] == t.get("responsible_id")), "не назначен"
             )
-            msg += f"• {t['name']} — {t['object']} ({t['status']}) — {responsible}\n"
+            msg += f"• {t['name']}\nОбъект: {t['object']}\nСтатус: {t['status']}\nОтветственный: {responsible}\n────────────\n"
 
-        await query.edit_message_text(msg,
-                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
+        buttons = []
+        if page > 0:
+            buttons.append(InlineKeyboardButton("◀️ Назад", callback_data=f"all_tools_{page-1}"))
+        if end < len(tools):
+            buttons.append(InlineKeyboardButton("▶️ Далее", callback_data=f"all_tools_{page+1}"))
+        buttons.append(InlineKeyboardButton("🏠 Главная", callback_data="back_to_menu"))
 
-# === Сообщения от пользователя ===
+        await query.edit_message_text(
+            msg,
+            reply_markup=InlineKeyboardMarkup([buttons])
+        )
+
+# === Обработка сообщений (QR) ===
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
-    tools = load_json("data/tools.json")
-    foremen = load_json("data/foremen.json")
+    tools = load_json("tools.json")
+    foremen = load_json("foremen.json")
 
     if context.user_data.get("awaiting_qr_scan"):
         context.user_data["awaiting_qr_scan"] = False
