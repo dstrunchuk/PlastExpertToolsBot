@@ -72,4 +72,11 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     users.append({"id": user_id, "name": name, "role": role})
     save_json(USERS_PATH, users)
 
+    foremen = load_json(FOREMEN_PATH)
+    for f in foremen:
+        if f["name"] == name:
+            f["id"] = user_id
+            break
+    save_json(FOREMEN_PATH, foremen)
+
     await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {role}.")
