@@ -1,4 +1,6 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram import (
+    Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+)
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, ContextTypes,
     CallbackQueryHandler, MessageHandler, filters
@@ -7,23 +9,27 @@ import json
 import os
 from dotenv import load_dotenv
 
+# === Загружаем токен ===
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ITEMS_PER_PAGE = 5
 
+# === Утилита загрузки JSON ===
 def load_json(path):
     if not os.path.exists(path):
         print(f"[Ошибка] Файл не найден: {path}")
         return []
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
-        
+
 # === /start ===
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Добро пожаловать в Plast Expert Tools!")
     user_id = update.effective_user.id
+
     foremen = load_json("data/foremen.json")
     users = load_json("data/users.json")
+
     for f in foremen:
         if f["id"] == user_id:
             await update.message.reply_text(f"Привет, {f['name']}! Ты зарегистрирован как бригадир.")
@@ -41,114 +47,57 @@ async def show_foreman_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("📋 Мои инструменты", callback_data="my_tools")],
         [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools_0")],
-        [InlineKeyboardButton("📷 Сканировать QR", web_app=WebAppInfo(url="https://plast-expert-tools-bot.vercel.app//"))]
+        [InlineKeyboardButton(
+            "📷 Сканировать QR",
+            web_app=WebAppInfo(url="https://plast-expert-tools-bot.vercel.app")
+        )]
     ]
-    markup = InlineKeyboardMarkup(keyboard)
+    reply_markup = InlineKeyboardMarkup(keyboard)
     if update.message:
-        await update.message.reply_text("Выберите действие:", reply_markup=markup)
+        await update.message.reply_text("Выберите действие:", reply_markup=reply_markup)
     elif update.callback_query:
-        await update.callback_query.message.edit_text("Выберите действие:", reply_markup=markup)
+        await update.callback_query.message.edit_text("Выберите действие:", reply_markup=reply_markup)
 
-# === Обработка кнопок ===
+# === Обработка callback-кнопок ===
 async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     action = query.data
-    user_id = query.from_user.id
 
     if action == "back_to_menu":
         return await show_foreman_menu(update, context)
 
-    elif action == "my_tools":
-        tools = load_json("tools.json")
+    if action == "my_tools":
+        user_id = query.from_user.id
+        tools = load_json("data/tools.json")
         user_tools = [t for t in tools if t.get("responsible_id") == user_id]
+
         if not user_tools:
-            await query.edit_message_text("У тебя пока нет прикреплённых инструментов.",
-                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
+            await query.edit_message_text(
+                "У тебя пока нет прикреплённых инструментов.",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
+            )
         else:
             msg = "Твои инструменты:\n\n"
             for t in user_tools:
-                msg += (
-                    f"• {t['name']}\n"
-                    f"Объект: {t['object']}\n"
-                    f"Статус: {t['status']}\n"
-                    f"────────────\n"
-                )
-            await query.edit_message_text(msg,
-                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]]))
-        
-    elif action.startswith("all_tools_"):
-        page = int(action.split("_")[-1])
-        tools = load_json("tools.json")
-        foremen = load_json("foremen.json")
-        total_pages = (len(tools) - 1) // ITEMS_PER_PAGE + 1
-        start = page * ITEMS_PER_PAGE
-        end = start + ITEMS_PER_PAGE
-        page_tools = tools[start:end]
-
-        if not page_tools:
-            await query.edit_message_text("Инструмент не найден.")
-            return
-
-        msg = f"Весь инструмент (страница {page+1} из {total_pages}):\n\n"
-        for t in page_tools:
-            responsible = t.get("responsible") or next(
-                (f["name"] for f in foremen if f["id"] == t.get("responsible_id")), "не назначен"
+                msg += f"— {t['name']} ({t['object']}, {t['status']})\n"
+            await query.edit_message_text(
+                msg,
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back_to_menu")]])
             )
-            msg += f"• {t['name']}\nОбъект: {t['object']}\nСтатус: {t['status']}\nОтветственный: {responsible}\n────────────\n"
 
-        buttons = []
-        if page > 0:
-            buttons.append(InlineKeyboardButton("◀️ Назад", callback_data=f"all_tools_{page-1}"))
-        if end < len(tools):
-            buttons.append(InlineKeyboardButton("▶️ Далее", callback_data=f"all_tools_{page+1}"))
-        buttons.append(InlineKeyboardButton("🏠 Главная", callback_data="back_to_menu"))
-
-        await query.edit_message_text(
-            msg,
-            reply_markup=InlineKeyboardMarkup([buttons])
-        )
-
-# === Обработка сообщений (QR) ===
+# === Обработка сообщений — для сканирования ===
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
-    tools = load_json("tools.json")
-    foremen = load_json("foremen.json")
-
-    if context.user_data.get("awaiting_qr_scan"):
-        context.user_data["awaiting_qr_scan"] = False
-        tool = next((t for t in tools if str(t["id"]) == text), None)
-        if not tool:
-            await update.message.reply_text(
-                "Инструмент не найден по этому QR.",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
-            )
-            return
-
-        responsible = tool.get("responsible") or next(
-            (f["name"] for f in foremen if f["id"] == tool.get("responsible_id")), "не назначен"
-        )
-        msg = (
-            f"Название: {tool['name']}\n"
-            f"Объект: {tool['object']}\n"
-            f"Статус: {tool['status']}\n"
-            f"Ответственный: {responsible}"
-        )
-        await update.message.reply_text(
-            msg,
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
-        )
-
-async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    data = update.message.web_app_data.data
-    tool_id = data.strip()
-
     tools = load_json("data/tools.json")
     foremen = load_json("data/foremen.json")
-    tool = next((t for t in tools if str(t["id"]) == tool_id), None)
 
+    tool = next((t for t in tools if str(t["id"]) == text), None)
     if not tool:
-        await update.message.reply_text("Инструмент не найден.")
+        await update.message.reply_text(
+            "Инструмент не найден.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
+        )
         return
 
     responsible = tool.get("responsible") or next(
@@ -160,11 +109,12 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
         f"Статус: {tool['status']}\n"
         f"Ответственный: {responsible}"
     )
-    await update.message.reply_text(msg)
+    await update.message.reply_text(
+        msg,
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главная", callback_data="back_to_menu")]])
+    )
 
-app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
-
-# === Запуск приложения ===
+# === Инициализация приложения ===
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start_command))
 app.add_handler(CallbackQueryHandler(handle_callbacks))
