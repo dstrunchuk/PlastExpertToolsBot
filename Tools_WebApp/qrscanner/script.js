@@ -3,46 +3,33 @@ window.onload = () => {
 
   if (!tg) {
     document.getElementById("status").innerText = "Ошибка: Telegram WebApp не обнаружен.";
+    console.warn("НЕ В Telegram WebApp — включён тестовый режим.");
     return;
   }
 
-  tg.ready(); // обязательно вызывать ready()
-
-  if (typeof Html5Qrcode === "undefined") {
-    document.getElementById("status").innerText = "QR-библиотека не загрузилась.";
-    return;
-  }
+  tg.ready(); // Telegram готов
 
   const html5QrCode = new Html5Qrcode("reader");
 
-  Html5Qrcode.getCameras()
-    .then((devices) => {
-      if (devices && devices.length) {
-        html5QrCode.start(
-          { facingMode: "environment" },
-          {
-            fps: 30,
-            qrbox: 300,
-            experimentalFeatures: {
-              useBarCodeDetectorIfSupported: true
-            },
-            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
-          },
-          (decodedText) => {
-            document.getElementById("status").innerText = `Сканировано: ${decodedText}`;
-            tg.sendData(decodedText);  // Отправка в Telegram
-            setTimeout(() => tg.close(), 500); // Закрытие через 0.5 сек
-          },
-          (errorMessage) => {
-            console.warn(`Ошибка сканирования: ${errorMessage}`);
-          }
-        );
-      } else {
-        document.getElementById("status").innerText = "Камера не найдена.";
-      }
-    })
-    .catch((err) => {
-      console.error("Ошибка доступа к камере:", err);
-      document.getElementById("status").innerText = "Ошибка доступа к камере.";
-    });
+  Html5Qrcode.getCameras().then(devices => {
+    if (devices && devices.length) {
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 25, qrbox: 300 },
+        (decodedText) => {
+          document.getElementById("status").innerText = `Сканировано: ${decodedText}`;
+          tg.sendData(decodedText);
+          setTimeout(() => tg.close(), 500);
+        },
+        (errorMessage) => {
+          console.warn(`Ошибка сканирования: ${errorMessage}`);
+        }
+      );
+    } else {
+      document.getElementById("status").innerText = "Камера не найдена.";
+    }
+  }).catch(err => {
+    console.error("Ошибка при доступе к камере:", err);
+    document.getElementById("status").innerText = "Ошибка доступа к камере.";
+  });
 };
