@@ -1,64 +1,78 @@
-# handlers/start.py
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 import json
 import os
 
-ADMIN_ID = 987664835
+ADMIN_ID = 987664835  # Твой Telegram ID
 
-def load_foremen():
-    with open("data/foremen.json", encoding="utf-8") as f:
+def load_json(path):
+    if not os.path.exists(path):
+        return []
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def save_foremen(data):
-    with open("data/foremen.json", "w", encoding="utf-8") as f:
+def save_json(path, data):
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    user_name = update.effective_user.full_name
-    foremen = load_foremen()
+    registered_users = load_json("data/users.json")
 
-    # Проверяем, зарегистрирован ли уже
-    for f in foremen:
-        if f.get("id") == user_id:
-            await update.message.reply_text(
-                f"Привет, {f['name']}! Ты уже зарегистрирован.",
-            )
-            return await context.bot.send_message(chat_id=user_id, text="Меню будет добавлено позже.")
-
-    # Кнопки выбора имени
-    buttons = [
-        [InlineKeyboardButton(f["name"], callback_data=f"reg_{f['name']}")] for f in foremen if f.get("id") is None
-    ]
-
-    # Если ты админ — добавляем кнопку пропустить
+    # Если админ — всегда показать меню
     if user_id == ADMIN_ID:
-        buttons.append([InlineKeyboardButton("⏭ Пропустить (тест админ)", callback_data="skip_admin")])
+        return await show_registration_menu(update)
 
-    await update.message.reply_text(
-        "Выберите своё имя из списка для регистрации:",
-        reply_markup=InlineKeyboardMarkup(buttons)
-    )
+    # Если уже зарегистрирован
+    for user in registered_users:
+        if user["id"] == user_id:
+            await update.message.reply_text("Вы уже зарегистрированы.")
+            return
+
+    return await show_registration_menu(update)
+
+async def show_registration_menu(update: Update):
+    keyboard = [
+        [InlineKeyboardButton("Sergei Strunchuk", callback_data="reg_Sergei Strunchuk")],
+        [InlineKeyboardButton("Vladyslav Parkhomenko", callback_data="reg_Vladyslav Parkhomenko")],
+        [InlineKeyboardButton("Dmitri Kralya", callback_data="reg_Dmitri Kralya")],
+        [InlineKeyboardButton("Dmitri Karalko", callback_data="reg_Dmitri Karalko")],
+        [InlineKeyboardButton("Vitali Kulak", callback_data="reg_Vitali Kulak")],
+        [InlineKeyboardButton("Oleh Kiekshyn", callback_data="reg_Oleh Kiekshyn")],
+        [InlineKeyboardButton("Aleksei Panin", callback_data="reg_Aleksei Panin")],
+        [InlineKeyboardButton("Shamil Kurbanov", callback_data="reg_Shamil Kurbanov")],
+        [InlineKeyboardButton("Juri Teras", callback_data="reg_Juri Teras")],
+        [InlineKeyboardButton("Alexei", callback_data="reg_Alexei")],
+        [InlineKeyboardButton("⏭ Пропустить (для админа)", callback_data="skip_admin")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Выберите своё имя:", reply_markup=reply_markup)
 
 async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+
     user_id = query.from_user.id
+    full_name = query.from_user.full_name
 
-    if query.data == "skip_admin" and user_id == ADMIN_ID:
-        await query.edit_message_text("Пропущено. Ты вошёл как админ. Полный доступ открыт.")
-        return await context.bot.send_message(chat_id=user_id, text="(Здесь будет меню разработчика)")
+    if query.data == "skip_admin":
+        await query.edit_message_text("Регистрация пропущена. Вы админ.")
+        return
 
-    if query.data.startswith("reg_"):
-        name = query.data[4:]
-        foremen = load_foremen()
+    selected_name = query.data.replace("reg_", "")
 
-        for f in foremen:
-            if f["name"] == name and not f.get("id"):
-                f["id"] = user_id
-                save_foremen(foremen)
-                await query.edit_message_text(f"Добро пожаловать, {name}! Регистрация завершена.")
-                return await context.bot.send_message(chat_id=user_id, text="(Здесь будет меню бригадира/супервайзера)")
+    new_user = {
+        "id": user_id,
+        "name": selected_name,
+        "full_name": full_name,
+        "role": "Супервайзер" if selected_name in [
+            "Aleksei Panin", "Shamil Kurbanov", "Juri Teras"
+        ] else "Ответственный"
+    }
 
-        await query.edit_message_text("Имя уже зарегистрировано или ошибка.")
+    users = load_json("data/users.json")
+    if not any(u["id"] == user_id for u in users):
+        users.append(new_user)
+        save_json("data/users.json", users)
+
+    await query.edit_message_text(f"Регистрация завершена, {selected_name}.")
