@@ -7,10 +7,6 @@ import os
 
 from handlers.start import start_command, handle_registration
 
-from handlers.start import start_command, handle_registration
-app.add_handler(CommandHandler("start", start_command))
-app.add_handler(CallbackQueryHandler(handle_registration, pattern="^(reg_|skip_admin)$"))
-
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
@@ -19,7 +15,7 @@ app = ApplicationBuilder().token(BOT_TOKEN).build()
 
 # === Обработчики ===
 app.add_handler(CommandHandler("start", start_command))
-app.add_handler(CallbackQueryHandler(handle_registration, pattern="^register_"))
+app.add_handler(CallbackQueryHandler(handle_registration, pattern="^(reg_|skip_admin)$"))
 
 print("Бот запущен.")
 app.run_polling()
