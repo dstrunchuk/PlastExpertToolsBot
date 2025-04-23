@@ -15,6 +15,7 @@ app.add_handler(CommandHandler("start", start_command))
 app.add_handler(CallbackQueryHandler(handle_registration, pattern="^(reg_|skip_admin)$"))
 app.add_handler(CallbackQueryHandler(handle_tool_search, pattern="^search_by_id$"))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_tool_id))
+app.add_handler(CallbackQueryHandler(handle_registration, pattern=r"^register:"))
 
 # === Запуск ===
 print("Бот запущен.")
