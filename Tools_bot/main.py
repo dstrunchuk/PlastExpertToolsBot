@@ -11,22 +11,19 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ITEMS_PER_PAGE = 5
 
-def load_json(filename):
-    base_dir = os.path.join(os.path.dirname(__file__), "data")
-    full_path = os.path.join(base_dir, os.path.basename(filename))
-    if not os.path.exists(full_path):
-        print(f"[Ошибка] Файл не найден: {full_path}")
+def load_json(path):
+    if not os.path.exists(path):
+        print(f"[Ошибка] Файл не найден: {path}")
         return []
-    with open(full_path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
-
+        
 # === /start ===
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Добро пожаловать в Plast Expert Tools!")
     user_id = update.effective_user.id
-    foremen = load_json("foremen.json")
-    users = load_json("users.json")
-
+    foremen = load_json("data/foremen.json")
+    users = load_json("data/users.json")
     for f in foremen:
         if f["id"] == user_id:
             await update.message.reply_text(f"Привет, {f['name']}! Ты зарегистрирован как бригадир.")
