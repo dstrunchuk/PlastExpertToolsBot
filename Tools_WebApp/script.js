@@ -1,5 +1,7 @@
 window.onload = () => {
     const tg = window.Telegram?.WebApp;
+    console.log("Telegram:", window.Telegram);
+    console.log("Telegram.WebApp:", window.Telegram?.WebApp);
   
     if (!tg) {
       document.getElementById("status").innerText = "Ошибка: Telegram WebApp не обнаружен.";
