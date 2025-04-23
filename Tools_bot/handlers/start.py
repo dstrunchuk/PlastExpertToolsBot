@@ -31,17 +31,20 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return await show_registration_menu(update)
 
-async def show_registration_menu(update: Update):
+aasync def show_registration_menu(update: Update):
     keyboard = [
+        [InlineKeyboardButton("— Ответственные —", callback_data="none")],
         [InlineKeyboardButton("Sergei Strunchuk", callback_data="reg_Sergei Strunchuk")],
         [InlineKeyboardButton("Vladyslav Parkhomenko", callback_data="reg_Vladyslav Parkhomenko")],
         [InlineKeyboardButton("Dmitri Kralya", callback_data="reg_Dmitri Kralya")],
         [InlineKeyboardButton("Dmitri Karalko", callback_data="reg_Dmitri Karalko")],
         [InlineKeyboardButton("Vitali Kulak", callback_data="reg_Vitali Kulak")],
         [InlineKeyboardButton("Oleh Kiekshyn", callback_data="reg_Oleh Kiekshyn")],
+        [InlineKeyboardButton("— Супервайзеры —", callback_data="none")],
         [InlineKeyboardButton("Aleksei Panin", callback_data="reg_Aleksei Panin")],
         [InlineKeyboardButton("Shamil Kurbanov", callback_data="reg_Shamil Kurbanov")],
         [InlineKeyboardButton("Juri Teras", callback_data="reg_Juri Teras")],
+        [InlineKeyboardButton("— Шеф —", callback_data="none")],
         [InlineKeyboardButton("Alexei", callback_data="reg_Alexei")],
         [InlineKeyboardButton("⏭ Пропустить (для админа)", callback_data="skip_admin")]
     ]
