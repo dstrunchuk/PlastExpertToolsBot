@@ -31,7 +31,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return await show_registration_menu(update)
 
-aasync def show_registration_menu(update: Update):
+async def show_registration_menu(update: Update):
     keyboard = [
         [InlineKeyboardButton("— Ответственные —", callback_data="none")],
         [InlineKeyboardButton("Sergei Strunchuk", callback_data="reg_Sergei Strunchuk")],
