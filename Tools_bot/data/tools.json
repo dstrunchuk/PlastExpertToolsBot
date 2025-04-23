@@ -1000,14 +1000,6 @@
     "photo_id": null
   },
   {
-    "id": "35795",
-    "name": "27_Vaakum plaadi hoidja (ВАКУУМ ПРИСОСКИ)",
-    "object": "Sepa",
-    "status": "в работе",
-    "responsible": "Вариант 19",
-    "photo_id": null
-  },
-  {
     "id": "36876",
     "name": "27_Vaakum plaadi hoidja (ВАКУУМ ПРИСОСКИ)",
     "object": "Sepa",
@@ -1716,7 +1708,7 @@
     "name": "5_Juhtsiin (Направ)",
     "object": "Laanelille",
     "status": "в работе",
-    "responsible_id": 987664835,
+    "responsible": "Sergei Strunchuk",
     "photo_id": null
   }
 ]
