@@ -3,142 +3,115 @@ from telegram.ext import (
     ApplicationBuilder, CommandHandler, ContextTypes,
     CallbackQueryHandler, MessageHandler, filters
 )
-import json
 import os
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ITEMS_PER_PAGE = 5
 
-def load_json(filename):
-    path = os.path.join(os.path.dirname(__file__), "data", filename)
-    if not os.path.exists(path):
-        return []
-    with open(path, "r", encoding="utf-8") as f:
+def load_json(file):
+    with open(os.path.join("data", file), encoding="utf-8") as f:
         return json.load(f)
 
-# === /start ===
+def save_json(file, data):
+    with open(os.path.join("data", file), "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    context.user_data["id"] = user_id
-    context.user_data["page"] = 0
-
     foremen = load_json("foremen.json")
     users = load_json("users.json")
 
     for f in foremen:
         if f["id"] == user_id:
-            context.user_data["role"] = "foreman"
-            return await show_menu(update, context, "foreman")
+            return await show_foreman_menu(update, context)
 
     for u in users:
         if u["id"] == user_id and u["role"] == "Супервайзер":
-            context.user_data["role"] = "supervisor"
-            return await show_menu(update, context, "supervisor")
+            return await show_supervisor_menu(update, context)
 
     await update.message.reply_text("Извините, вы не зарегистрированы.")
 
-# === МЕНЮ ===
-async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, role: str):
+async def show_foreman_menu(update, context):
     keyboard = [
         [InlineKeyboardButton("📋 Мои инструменты", callback_data="my_tools")],
-        [InlineKeyboardButton("🔍 Весь инструмент", callback_data="all_tools_0")],
-        [InlineKeyboardButton("🆔 Найти по ID", callback_data="search_tool")]
+        [InlineKeyboardButton("📦 Весь инструмент", callback_data="all_tools_0")],
+        [InlineKeyboardButton("🔍 Найти по ID", callback_data="search_tool")]
     ]
-    if update.message:
-        await update.message.reply_text("Выберите действие:", reply_markup=InlineKeyboardMarkup(keyboard))
-    elif update.callback_query:
-        await update.callback_query.message.edit_text("Выберите действие:", reply_markup=InlineKeyboardMarkup(keyboard))
+    markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Меню бригадира:", reply_markup=markup)
 
-# === ОБРАБОТКА КНОПОК ===
+async def show_supervisor_menu(update, context):
+    keyboard = [
+        [InlineKeyboardButton("📦 Весь инструмент", callback_data="all_tools_0")],
+        [InlineKeyboardButton("🔍 Найти по ID", callback_data="search_tool")]
+    ]
+    markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Меню супервайзера:", reply_markup=markup)
+
 async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    data = query.data
-    user_id = context.user_data.get("id")
-    role = context.user_data.get("role")
-    tools = load_json("tools.json")
-    foremen = load_json("foremen.json")
+    user_id = query.from_user.id
+    await query.answer()
 
-    if data == "my_tools":
-        my = [t for t in tools if t.get("responsible_id") == user_id]
-        if not my:
-            await query.edit_message_text("У тебя пока нет инструментов.",
-                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back")]]))
-        else:
-            msg = "Твои инструменты:\n\n"
-            for t in my:
-                msg += f"— {t['name']}\nОбъект: {t['object']}\nСтатус: {t['status']}\n\n"
-            await query.edit_message_text(msg.strip(),
-                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back")]]))
-
-    elif data.startswith("all_tools_"):
-        page = int(data.split("_")[-1])
-        context.user_data["page"] = page
-        start_i = page * ITEMS_PER_PAGE
-        end_i = start_i + ITEMS_PER_PAGE
-        chunk = tools[start_i:end_i]
-        total = len(tools)
-
-        if not chunk:
-            await query.edit_message_text("Инструментов нет.",
-                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back")]]))
-            return
-
-        msg = f"Инструменты ({start_i + 1}–{min(end_i, total)} из {total}):\n\n"
-        for t in chunk:
-            resp = next((f["name"] for f in foremen if f["id"] == t.get("responsible_id")), "не назначен")
-            msg += f"— {t['name']}\nОбъект: {t['object']}\nСтатус: {t['status']}\nОтветственный: {resp}\n\n"
-
-        buttons = []
-        if page > 0:
-            buttons.append(InlineKeyboardButton("⬅️ Назад", callback_data=f"all_tools_{page - 1}"))
-        if end_i < total:
-            buttons.append(InlineKeyboardButton("➡️ Далее", callback_data=f"all_tools_{page + 1}"))
-        buttons.append(InlineKeyboardButton("🏠 Главная", callback_data="back"))
-        await query.edit_message_text(msg.strip(), reply_markup=InlineKeyboardMarkup([buttons]))
-
-    elif data == "search_tool":
-        context.user_data["awaiting_tool_id"] = True
-        await query.edit_message_text("Введите ID инструмента, чтобы найти его.",
-                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back")]]))
-
-    elif data == "back":
-        return await show_menu(update, context, role)
-
-# === ПОИСК ПО ID ===
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if context.user_data.get("awaiting_tool_id"):
-        tool_id = update.message.text.strip()
+    if query.data.startswith("all_tools_"):
         tools = load_json("tools.json")
+        page = int(query.data.split("_")[-1])
+        start = page * ITEMS_PER_PAGE
+        end = start + ITEMS_PER_PAGE
+        msg = "\n\n".join(
+            f"🔧 {t['name']}\nОбъект: {t['object']}\nСтатус: {t['status']}\nОтветственный: {t.get('responsible', 'не назначен')}"
+            for t in tools[start:end]
+        ) or "Нет инструментов на этой странице."
+
+        nav = []
+        if start > 0:
+            nav.append(InlineKeyboardButton("◀️ Назад", callback_data=f"all_tools_{page - 1}"))
+        if end < len(tools):
+            nav.append(InlineKeyboardButton("▶️ Далее", callback_data=f"all_tools_{page + 1}"))
+        nav.append(InlineKeyboardButton("◀️ Главная", callback_data="back_menu"))
+
+        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup([nav]))
+
+    elif query.data == "back_menu":
         foremen = load_json("foremen.json")
-        role = context.user_data.get("role")
-        user_id = context.user_data.get("id")
+        if any(f["id"] == user_id for f in foremen):
+            await show_foreman_menu(update, context)
+        else:
+            await show_supervisor_menu(update, context)
 
-        tool = next((t for t in tools if str(t["id"]) == tool_id), None)
+    elif query.data == "my_tools":
+        tools = load_json("tools.json")
+        my = [t for t in tools if t.get("responsible_id") == user_id]
+        msg = "\n\n".join(f"🔧 {t['name']}\nОбъект: {t['object']}\nСтатус: {t['status']}" for t in my) or "Инструментов нет."
+        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Назад", callback_data="back_menu")]
+        ]))
+
+    elif query.data == "search_tool":
+        context.user_data["awaiting_search"] = True
+        await query.edit_message_text("Введите ID инструмента для поиска:")
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    text = update.message.text.strip()
+    if context.user_data.get("awaiting_search"):
+        tools = load_json("tools.json")
+        tool = next((t for t in tools if str(t["id"]) == text), None)
         if not tool:
-            await update.message.reply_text("Инструмент не найден.",
-                                            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back")]]))
+            await update.message.reply_text("Инструмент не найден.")
             return
+        buttons = [[InlineKeyboardButton("◀️ Главная", callback_data="back_menu")]]
+        if tool.get("responsible_id") is None:
+            buttons.insert(0, [InlineKeyboardButton("Стать ответственным", callback_data=f"take_{tool['id']}")])
+        elif tool.get("responsible_id") != user_id:
+            buttons.insert(0, [InlineKeyboardButton("Запросить инструмент", callback_data=f"request_{tool['id']}")])
+        msg = f"🔧 {tool['name']}\nОбъект: {tool['object']}\nСтатус: {tool['status']}\nОтветственный: {tool.get('responsible', 'не назначен')}"
+        await update.message.reply_text(msg, reply_markup=InlineKeyboardMarkup(buttons))
+        context.user_data["awaiting_search"] = False
 
-        resp = next((f["name"] for f in foremen if f["id"] == tool.get("responsible_id")), "не назначен")
-        msg = f"Инструмент найден:\n\n— {tool['name']}\nОбъект: {tool['object']}\nСтатус: {tool['status']}\nОтветственный: {resp}"
-
-        if role == "supervisor":
-            msg += "\n\nВы можете изменить ответственного."
-        elif role == "foreman":
-            if tool.get("responsible_id") == user_id:
-                msg += "\n\nТы владелец — можешь передать."
-            else:
-                msg += "\n\nТы можешь запросить передачу."
-
-        context.user_data["awaiting_tool_id"] = False
-        await update.message.reply_text(msg,
-                                        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Назад", callback_data="back")]]))
-    else:
-        await update.message.reply_text("Напиши команду /start.")
-
-# === ЗАПУСК ===
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(handle_callbacks))
