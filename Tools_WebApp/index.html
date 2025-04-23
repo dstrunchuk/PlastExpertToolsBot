@@ -1,35 +1,30 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Сканирование QR</title>
-  <script src="html5-qrcode.min.js"></script>
-  <script src="script.js" defer></script>
-  <style>
-    body {
-      margin: 0;
-      background: #121212;
-      color: white;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-    #reader {
-      width: 90%;
-      max-width: 400px;
-    }
-    #status {
-      margin-top: 20px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div id="reader"></div>
-  <div id="status">Наведи камеру на QR-код</div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>QR Scanner</title>
+    <script src="html5-qrcode.min.js"></script>
+    <script src="script.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body {
+        margin: 0;
+        background: black;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+      }
+      #reader {
+        width: 90%;
+        max-width: 400px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="reader"></div>
+    <div id="status">Сканируй QR-код</div>
+  </body>
 </html>
