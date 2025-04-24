@@ -44,23 +44,20 @@ async def show_registration_menu(update: Update):
 
     # Список всех ответственных (не супервайзеров и шефов)
     buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in foreman_names if name not in supervisors + director]
-    
     buttons.append([InlineKeyboardButton("— Супервайзеры —", callback_data="ignore")])
     buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in supervisors]
-    
     buttons.append([InlineKeyboardButton("— Шеф —", callback_data="ignore")])
     buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in director]
 
-    buttons.append([InlineKeyboardButton("Пропустить (Админ)", callback_data="register:ADMIN_SKIP")])
-
-    # Добавляем кнопку для админа
+    # Кнопка для админа, которая видна только тебе
     if update.effective_user.id == ADMIN_ID:
-        buttons.append([InlineKeyboardButton("Войти как...", callback_data="register:admin_choose_role")])
+        buttons.append([InlineKeyboardButton("Админ", callback_data="register:Admin")])
 
     await update.message.reply_text(
         "Выбери своё имя для регистрации:",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
+
 async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -70,8 +67,8 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     users = load_json(USERS_PATH)
 
-    # Если выбрана роль "ADMIN_SKIP", пропускаем регистрацию, добавляем админа как ответственного
-    if name == "ADMIN_SKIP":
+    # Если нажали "Админ", пропускаем регистрацию и ставим роль "Ответственный" (для тебя)
+    if name == "Admin":
         if not any(u["id"] == user_id for u in users):
             users = [u for u in users if u["id"] != user_id]  # Удаляем старую запись, если админ перезаходит под другой ролью
             users.append({"id": user_id, "name": "Admin", "role": "Ответственный"})  # Принудительно ставим роль "Ответственный"
@@ -81,18 +78,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         await show_main_menu(update, context)  # Переводим на основное меню
         return
 
-    # Если выбрана роль через "Войти как...", показываем выбор роли
-    if name == "admin_choose_role":
-        buttons = [
-            [InlineKeyboardButton("✅ Ответственный", callback_data="register:Admin:Ответственный")],
-            [InlineKeyboardButton("✅ Супервайзер", callback_data="register:Admin:Супервайзер")],
-            [InlineKeyboardButton("✅ Шеф", callback_data="register:Admin:Шеф")],
-            [InlineKeyboardButton("◀️ Назад", callback_data="register:back_to_main")]
-        ]
-        await query.edit_message_text("Кем войти?", reply_markup=InlineKeyboardMarkup(buttons))
-        return
-
-    # Для других пользователей — ставим роль в зависимости от их имени
+    # Для всех остальных пользователей — ставим роль в зависимости от их имени
     role = "Ответственный"  # Роль по умолчанию
     if name in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"]:  # Устанавливаем роль супервайзера
         role = "Супервайзер"
