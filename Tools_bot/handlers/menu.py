@@ -28,7 +28,6 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         buttons = [
             [InlineKeyboardButton("🔍 Найти инструмент", callback_data="find_tool")],
             [InlineKeyboardButton("📋 Весь инструмент", callback_data="all_tools")],
-            [InlineKeyboardButton("👤 Назначить ответственного", callback_data="assign_responsible")],
         ]
     else:  # Ответственный (или админ, пока заходит как обычный)
         buttons = [
