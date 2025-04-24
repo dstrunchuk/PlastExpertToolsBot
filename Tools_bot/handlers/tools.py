@@ -50,7 +50,7 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 InlineKeyboardButton("📤 Передать", callback_data=f"transfer:{tool_id}"),
                 InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool_id}")
             ])
-        elif responsible_id is None:
+        elif responsible_id is None and not responsible:
             buttons.append([InlineKeyboardButton("✅ Стать ответственным", callback_data=f"take:{tool_id}")])
         else:
             buttons.append([InlineKeyboardButton("📥 Запросить передачу", callback_data=f"request:{tool_id}")])
