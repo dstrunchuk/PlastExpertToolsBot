@@ -35,10 +35,10 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     responsible = tool.get("responsible")
     responsible_id = tool.get("responsible_id")
 
-    text = f"**Инструмент:** {tool.get('name')}\n"
-    text += f"**ID:** {tool.get('id')}\n"
-    text += f"**Объект:** {tool.get('object') or '—'}\n"
-    text += f"**Ответственный:** {responsible or 'Никто'}"
+    text = f"<b>Инструмент:</b> {tool.get('name')}\n"
+    text += f"<b>ID:</b> {tool.get('id')}\n"
+    text += f"<b>Объект:</b> {tool.get('object') or '—'}\n"
+    text += f"<b>Ответственный:</b> {responsible or 'Никто'}"
 
     buttons = []
 
@@ -61,5 +61,5 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         text,
         reply_markup=InlineKeyboardMarkup(buttons),
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
