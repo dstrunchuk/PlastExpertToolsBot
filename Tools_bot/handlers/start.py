@@ -67,11 +67,10 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         if not any(u["id"] == user_id for u in users):
             users.append({"id": user_id, "name": "Admin", "role": "Шеф"})
             save_json(USERS_PATH, users)
-        await query.edit_message_text("Регистрация пропущена. Вы админ.")
-        return
 
-    if any(u["id"] == user_id for u in users):
-        await query.edit_message_text("Вы уже зарегистрированы.")
+        await query.edit_message_text("Регистрация пропущена. Вы админ.")
+        # Переход в меню
+        await show_main_menu(update, context)
         return
 
     role = "Супервайзер" if name in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"] else "Ответственный"
