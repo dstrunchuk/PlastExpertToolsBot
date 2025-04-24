@@ -35,26 +35,31 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await show_registration_menu(update)
 
 async def show_registration_menu(update: Update):
-    foremen = load_json(FOREMEN_PATH)
-    foreman_names = sorted(set(f["name"] for f in foremen))
-    supervisors = sorted(set(f["name"] for f in foremen if f["name"] in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"]))
-    director = ["Alexei"]
+    users_data = [
+        {"name": "Admin", "role": "Админ", "id": 987664835},
+        {"name": "Sergei Strunchuk", "role": "Ответственный"},
+        {"name": "Vladyslav Parkhomenko", "role": "Ответственный"},
+        {"name": "Dmitri Kralya", "role": "Ответственный"},
+        {"name": "Dmitri Karalko", "role": "Ответственный"},
+        {"name": "Vitali Kulak", "role": "Ответственный"},
+        {"name": "Oleh Kiekshyn", "role": "Ответственный"},
+        {"name": "Aleksei Panin", "role": "Супервайзер"},
+        {"name": "Shamil Kurbanov", "role": "Супервайзер"},
+        {"name": "Juri Teras", "role": "Супервайзер"},
+        {"name": "Alexei D", "role": "Шеф"}
+    ]
 
     buttons = []
 
-    # Список всех ответственных (не супервайзеров и шефов)
-    buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in foreman_names if name not in supervisors + director]
-    buttons.append([InlineKeyboardButton("— Супервайзеры —", callback_data="ignore")])
-    buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in supervisors]
-    buttons.append([InlineKeyboardButton("— Шеф —", callback_data="ignore")])
-    buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in director]
-
-    # Кнопка для админа, которая видна только тебе
-    if update.effective_user.id == ADMIN_ID:
-        buttons.append([InlineKeyboardButton("Админ", callback_data="register:Admin")])
+    # Перебираем всех пользователей и создаем кнопки для регистрации
+    for user in users_data:
+        if user["role"] == "Админ" and update.effective_user.id == user["id"]:
+            buttons.append([InlineKeyboardButton(f"{user['name']} (Вы)", callback_data=f"register:{user['name']}")])
+        else:
+            buttons.append([InlineKeyboardButton(user['name'], callback_data=f"register:{user['name']}")])
 
     await update.message.reply_text(
-        "Выбери своё имя для регистрации:",
+        "Выбери своё имя для регистрации (если ваше имя есть в списке):",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
 
@@ -62,30 +67,27 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
-    parts = query.data.split(":")
-    name = parts[1]
+    name = query.data.split(":")[1]
 
     users = load_json(USERS_PATH)
 
-    # Если нажали "Админ", пропускаем регистрацию и ставим роль "Ответственный" (для тебя)
-    if name == "Admin":
+    # Если это админ, то роль автоматически присваивается "Ответственный"
+    if name == "Admin" and update.effective_user.id == 987664835:
         if not any(u["id"] == user_id for u in users):
-            users = [u for u in users if u["id"] != user_id]  # Удаляем старую запись, если админ перезаходит под другой ролью
-            users.append({"id": user_id, "name": "Admin", "role": "Ответственный"})  # Принудительно ставим роль "Ответственный"
+            users = [u for u in users if u["id"] != user_id]  # Удаляем старую запись, если админ перезаходит
+            users.append({"id": user_id, "name": name, "role": "Ответственный"})  # Присваиваем роль "Ответственный"
             save_json(USERS_PATH, users)
 
         await query.edit_message_text("Регистрация пропущена. Вы админ.")
-        await show_main_menu(update, context)  # Переводим на основное меню
+        await show_main_menu(update, context)
         return
 
-    # Для всех остальных пользователей — ставим роль в зависимости от их имени
-    role = "Ответственный"  # Роль по умолчанию
-    if name in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"]:  # Устанавливаем роль супервайзера
-        role = "Супервайзер"
+    # Для остальных — роль автоматически определяется
+    role = "Ответственный" if name not in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras", "Alexei D"] else "Супервайзер"
 
-    # Добавляем пользователя с его ролью
-    users.append({"id": user_id, "name": name, "role": role})
-    save_json(USERS_PATH, users)
+    if not any(u["id"] == user_id for u in users):
+        users.append({"id": user_id, "name": name, "role": role})
+        save_json(USERS_PATH, users)
 
     # Добавляем Telegram ID в foremen.json
     foremen = load_json(FOREMEN_PATH)
@@ -96,4 +98,4 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     save_json(FOREMEN_PATH, foremen)
 
     await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {role}.")
-    await show_main_menu(update, context)  # Переводим на основное меню
+    await show_main_menu(update, context)
