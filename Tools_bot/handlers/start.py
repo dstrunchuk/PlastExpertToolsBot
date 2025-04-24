@@ -32,6 +32,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Вы уже зарегистрированы.")
             await show_main_menu(update, context)
         return
+    
+    # Если пользователь не зарегистрирован
+    await show_registration_menu(update)
 
 async def show_registration_menu(update: Update):
     foremen = load_json(FOREMEN_PATH)
