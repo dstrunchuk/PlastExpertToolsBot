@@ -73,8 +73,13 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
             [InlineKeyboardButton("✅ Ответственный", callback_data="register:Admin:Ответственный")],
             [InlineKeyboardButton("✅ Супервайзер", callback_data="register:Admin:Супервайзер")],
             [InlineKeyboardButton("✅ Шеф", callback_data="register:Admin:Шеф")],
+            [InlineKeyboardButton("◀️ Назад", callback_data="register:back_to_main")]
         ]
         await query.edit_message_text("Кем войти?", reply_markup=InlineKeyboardMarkup(buttons))
+        return
+    
+    if name == "back_to_main":
+        await show_registration_menu(update)
         return
 
     if name == "ADMIN_SKIP":
