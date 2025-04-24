@@ -17,6 +17,7 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     users = load_json(USERS_PATH)
     user_data = next((u for u in users if u["id"] == user_id), None)
 
+    # Проверка регистрации
     if not user_data:
         if update.message:
             await update.message.reply_text("Сначала зарегистрируйся.")
@@ -24,22 +25,26 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.callback_query.edit_message_text("Сначала зарегистрируйся.")
         return
 
-    role = user_data.get("role", "Ответственный")
+    role = user_data.get("role", "Ответственный")  # Получаем роль пользователя
     buttons = []
 
+    # Если Супервайзер или Шеф, показываем другие кнопки
     if role in ["Супервайзер", "Шеф"]:
         buttons = [
             [InlineKeyboardButton("🔍 Найти инструмент", callback_data="find_tool")],
             [InlineKeyboardButton("📋 Весь инструмент", callback_data="all_tools")]
         ]
     else:
+        # Для Ответственного — добавляем кнопку "Мои инструменты"
         buttons = [
             [InlineKeyboardButton("🔍 Найти инструмент", callback_data="find_tool")],
             [InlineKeyboardButton("🔨 Мои инструменты", callback_data="my_tools")]
         ]
 
+    # Добавляем кнопку на главную
     buttons.append([InlineKeyboardButton("◀️ Главная", callback_data="main_back")])
 
+    # Отправляем или редактируем сообщение с меню
     if update.message:
         await update.message.reply_text("Главное меню:", reply_markup=InlineKeyboardMarkup(buttons))
     elif update.callback_query:

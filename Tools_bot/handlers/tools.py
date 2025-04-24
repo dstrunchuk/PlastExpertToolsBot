@@ -48,11 +48,14 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await query.edit_message_text(f"Инструмент уже закреплен за {tool['responsible']}.")
     
     elif action == "transfer":
-        # Передать инструмент
-        tool["responsible_id"] = user_id
-        tool["responsible"] = user["name"]
-        save_json(TOOLS_PATH, tools)
-        await query.edit_message_text(f"Инструмент {tool['name']} передан вам.")
+        if responsible_id is None:
+            await query.edit_message_text(f"Инструмент {tool['name']} ещё не имеет ответственного.")
+        else:
+            # Передать инструмент
+            tool["responsible_id"] = user_id
+            tool["responsible"] = user["name"]
+            save_json(TOOLS_PATH, tools)
+            await query.edit_message_text(f"Инструмент {tool['name']} передан вам.")
     
     elif action == "store":
         # Вернуть на склад
@@ -63,7 +66,6 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.edit_message_text(f"Инструмент {tool['name']} возвращен на склад.")
     
     elif action == "request":
-        # Запросить передачу инструмента
         if responsible_id:
             responsible_user = next(u for u in users if u["id"] == responsible_id)
             await query.edit_message_text(f"Вы запросили передачу инструмента {tool['name']} у {responsible_user['name']}.")

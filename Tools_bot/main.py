@@ -1,10 +1,8 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes, ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from handlers.start import start_command, handle_registration
 from handlers.tools import handle_tool_action
-from telegram.ext import MessageHandler, filters
 from handlers.menu import show_main_menu
-from telegram.ext import CallbackQueryHandler
 from dotenv import load_dotenv
 import os
 
@@ -18,6 +16,7 @@ app.add_handler(CommandHandler("start", start_command))
 app.add_handler(CallbackQueryHandler(handle_registration, pattern="^(register:|skip_admin)$"))
 app.add_handler(CallbackQueryHandler(handle_tool_action, pattern="^(take|transfer|store|request):"))
 app.add_handler(CallbackQueryHandler(show_main_menu, pattern="^main_back$"))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_tool_id))
 
 # Запуск бота
 print("Бот запущен.")
