@@ -42,13 +42,18 @@ async def show_registration_menu(update: Update):
 
     buttons = []
 
+    # Список всех ответственных (не супервайзеров и шефов)
     buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in foreman_names if name not in supervisors + director]
+    
     buttons.append([InlineKeyboardButton("— Супервайзеры —", callback_data="ignore")])
     buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in supervisors]
+    
     buttons.append([InlineKeyboardButton("— Шеф —", callback_data="ignore")])
     buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in director]
+
     buttons.append([InlineKeyboardButton("Пропустить (Админ)", callback_data="register:ADMIN_SKIP")])
 
+    # Добавляем кнопку для админа
     if update.effective_user.id == ADMIN_ID:
         buttons.append([InlineKeyboardButton("Войти как...", callback_data="register:admin_choose_role")])
 
@@ -56,17 +61,27 @@ async def show_registration_menu(update: Update):
         "Выбери своё имя для регистрации:",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
-
 async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
     parts = query.data.split(":")
     name = parts[1]
-    role = parts[2] if len(parts) > 2 else None
 
     users = load_json(USERS_PATH)
 
+    # Если выбрана роль "ADMIN_SKIP", пропускаем регистрацию, добавляем админа как ответственного
+    if name == "ADMIN_SKIP":
+        if not any(u["id"] == user_id for u in users):
+            users = [u for u in users if u["id"] != user_id]  # Удаляем старую запись, если админ перезаходит под другой ролью
+            users.append({"id": user_id, "name": "Admin", "role": "Ответственный"})  # Принудительно ставим роль "Ответственный"
+            save_json(USERS_PATH, users)
+
+        await query.edit_message_text("Регистрация пропущена. Вы админ.")
+        await show_main_menu(update, context)  # Переводим на основное меню
+        return
+
+    # Если выбрана роль через "Войти как...", показываем выбор роли
     if name == "admin_choose_role":
         buttons = [
             [InlineKeyboardButton("✅ Ответственный", callback_data="register:Admin:Ответственный")],
@@ -77,27 +92,16 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         await query.edit_message_text("Кем войти?", reply_markup=InlineKeyboardMarkup(buttons))
         return
 
-    if name == "back_to_main":
-        users = [u for u in users if u["id"] != user_id]
-        save_json(USERS_PATH, users)
-        await show_registration_menu(update)
-        return
+    # Для других пользователей — ставим роль в зависимости от их имени
+    role = "Ответственный"  # Роль по умолчанию
+    if name in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"]:  # Устанавливаем роль супервайзера
+        role = "Супервайзер"
 
-    if name == "ADMIN_SKIP":
-        if not any(u["id"] == user_id for u in users):
-            users.append({"id": user_id, "name": "Admin", "role": "Шеф"})
-            save_json(USERS_PATH, users)
-        await query.edit_message_text("Регистрация пропущена. Вы админ.")
-        await show_main_menu(update, context)
-        return
-
-    if not role:
-        role = "Супервайзер" if name in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"] else "Ответственный"
-
-    users = [u for u in users if u["id"] != user_id]
+    # Добавляем пользователя с его ролью
     users.append({"id": user_id, "name": name, "role": role})
     save_json(USERS_PATH, users)
 
+    # Добавляем Telegram ID в foremen.json
     foremen = load_json(FOREMEN_PATH)
     for f in foremen:
         if f["name"] == name:
@@ -106,4 +110,4 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     save_json(FOREMEN_PATH, foremen)
 
     await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {role}.")
-    await show_main_menu(update, context)
+    await show_main_menu(update, context)  # Переводим на основное меню

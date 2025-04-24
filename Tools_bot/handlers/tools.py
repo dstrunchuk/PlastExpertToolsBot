@@ -17,62 +17,77 @@ def save_json(filename, data):
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
+# Обработчик для поиска ID инструмента
+async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    tool_id = update.message.text.strip()  # Получаем ID инструмента
+
+    tools = load_json(TOOLS_PATH)
+    tool = next((t for t in tools if str(t.get("id")) == tool_id), None)
+
+    if not tool:
+        await update.message.reply_text("Инструмент с таким ID не найден.")
+        return
+
+    # Если инструмент найден, показываем его данные и кнопки для действий
+    await handle_tool_action(update, context, tool_id)
+
+# Обработчик для всех действий с инструментом
+async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE, tool_id=None):
+    if not tool_id:  # Если ID не передан, то находим его из контекста
+        tool_id = update.callback_query.data.split(":")[1]
     
-    user_id = query.from_user.id
-    action = query.data.split(":")[0]
-    tool_id = query.data.split(":")[1]
-    
+    user_id = update.callback_query.from_user.id if update.callback_query else update.effective_user.id
+    action = update.callback_query.data.split(":")[0] if update.callback_query else None
+
     tools = load_json(TOOLS_PATH)
     users = load_json(USERS_PATH)
-    
+
     tool = next((t for t in tools if str(t.get("id")) == tool_id), None)
     user = next((u for u in users if u["id"] == user_id), None)
     role = user.get("role", "Ответственный") if user else "Ответственный"
-    
+
     if not tool:
-        await query.edit_message_text("Инструмент не найден.")
+        await update.message.reply_text("Инструмент не найден.")
         return
 
     responsible_id = tool.get("responsible_id")
-    
-    # Обработка действия: Стать ответственным
+
+    # Стать ответственным
     if action == "take":
         if responsible_id is None:
             tool["responsible_id"] = user_id
             tool["responsible"] = user["name"]
             save_json(TOOLS_PATH, tools)
-            await query.edit_message_text(f"Теперь вы ответственны за {tool['name']}.")
+            await update.callback_query.edit_message_text(f"Теперь вы ответственны за {tool['name']}.")
         else:
-            await query.edit_message_text(f"Инструмент уже закреплен за {tool['responsible']}.")
-    
-    # Обработка действия: Передача инструмента
+            await update.callback_query.edit_message_text(f"Инструмент уже закреплен за {tool['responsible']}.")
+
+    # Передача инструмента
     elif action == "transfer":
-        if responsible_id != user_id:  # Только если инструмент не ваш
-            tool["responsible_id"] = user_id
-            tool["responsible"] = user["name"]
-            save_json(TOOLS_PATH, tools)
-            await query.edit_message_text(f"Инструмент {tool['name']} передан вам.")
-        else:
-            await query.edit_message_text(f"Инструмент уже ваш.")
-    
-    # Обработка действия: Вернуть на склад
+        tool["responsible_id"] = user_id
+        tool["responsible"] = user["name"]
+        save_json(TOOLS_PATH, tools)
+        await update.callback_query.edit_message_text(f"Инструмент {tool['name']} передан вам.")
+
+    # Возврат на склад
     elif action == "store":
-        if responsible_id is not None:  # Если инструмент закреплён за кем-то
-            tool["responsible_id"] = None
-            tool["responsible"] = None
-            tool["object"] = "Ladu"  # Если склад — это 'Ladu'
-            save_json(TOOLS_PATH, tools)
-            await query.edit_message_text(f"Инструмент {tool['name']} возвращен на склад.")
-        else:
-            await query.edit_message_text(f"Инструмент уже на складе.")
-    
-    # Обработка действия: Запросить передачу
+        tool["responsible_id"] = None
+        tool["responsible"] = None
+        tool["object"] = "Ladu"  # Если склад — это 'Ladu'
+        save_json(TOOLS_PATH, tools)
+        await update.callback_query.edit_message_text(f"Инструмент {tool['name']} возвращен на склад.")
+
+    # Запрос на передачу
     elif action == "request":
         if responsible_id:
             responsible_user = next(u for u in users if u["id"] == responsible_id)
-            await query.edit_message_text(f"Вы запросили передачу инструмента {tool['name']} у {responsible_user['name']}.")
+            await update.callback_query.edit_message_text(f"Вы запросили передачу инструмента {tool['name']} у {responsible_user['name']}.")
         else:
-            await query.edit_message_text(f"Инструмент {tool['name']} ещё не закреплен за кем-либо.")
+            await update.callback_query.edit_message_text(f"Инструмент {tool['name']} ещё не закреплен за кем-либо.")
+
+# Хендлеры
+from telegram.ext import CallbackQueryHandler, MessageHandler, filters
+
+app.add_handler(CallbackQueryHandler(process_tool_id, pattern="^find_tool$"))  # Найти инструмент
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_tool_id))  # Поиск по ID
