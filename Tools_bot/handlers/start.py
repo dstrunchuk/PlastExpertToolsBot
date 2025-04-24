@@ -1,5 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+from handlers.menu import show_main_menu
 import json
 import os
 
@@ -59,11 +60,16 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_id = query.from_user.id
     name = query.data.split(":")[1]
 
+    users = load_json(USERS_PATH)
+
     if name == "ADMIN_SKIP":
+        # Добавляем админа в users.json как шефа, если его там ещё нет
+        if not any(u["id"] == user_id for u in users):
+            users.append({"id": user_id, "name": "Admin", "role": "Шеф"})
+            save_json(USERS_PATH, users)
         await query.edit_message_text("Регистрация пропущена. Вы админ.")
         return
 
-    users = load_json(USERS_PATH)
     if any(u["id"] == user_id for u in users):
         await query.edit_message_text("Вы уже зарегистрированы.")
         return
@@ -72,6 +78,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     users.append({"id": user_id, "name": name, "role": role})
     save_json(USERS_PATH, users)
 
+    # Добавляем Telegram ID в foremen.json
     foremen = load_json(FOREMEN_PATH)
     for f in foremen:
         if f["name"] == name:
@@ -80,3 +87,4 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     save_json(FOREMEN_PATH, foremen)
 
     await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {role}.")
+    await show_main_menu(update, context)
