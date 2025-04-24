@@ -3,8 +3,8 @@ from dotenv import load_dotenv
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
 from handlers.start import start_command, handle_registration
 from handlers.tools import handle_tool_action
-from handlers.menu import show_main_menu
 from telegram.ext import MessageHandler, filters
+from handlers.menu import show_main_menu
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
