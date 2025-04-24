@@ -5,6 +5,8 @@ from handlers.tools import handle_tool_action
 from telegram.ext import MessageHandler, filters
 from handlers.menu import show_main_menu
 from telegram.ext import CallbackQueryHandler
+from dotenv import load_dotenv
+import os
 
 # Инициализация бота
 load_dotenv()
