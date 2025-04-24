@@ -35,24 +35,23 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     responsible = tool.get("responsible")
     responsible_id = tool.get("responsible_id")
 
-    text = f"<b>Инструмент:</b> {tool.get('name')}\n"
-    text += f"<b>ID:</b> {tool.get('id')}\n"
-    text += f"<b>Объект:</b> {tool.get('object') or '—'}\n"
+    text = f"<b>Инструмент:</b> {tool.get('name')}"
+    text += f"<b>ID:</b> {tool.get('id')}"
+    text += f"<b>Объект:</b> {tool.get('object') or '—'}"
     text += f"<b>Ответственный:</b> {responsible or 'Никто'}"
 
     buttons = []
 
     if role in ["Супервайзер", "Шеф"]:
         buttons.append([InlineKeyboardButton("👤 Назначить ответственного", callback_data=f"assign:{tool_id}")])
-
     elif role == "Ответственный":
-        if responsible_id is None:
-            buttons.append([InlineKeyboardButton("✅ Стать ответственным", callback_data=f"take:{tool_id}")])
-        elif responsible_id == user_id:
+        if responsible_id == user_id:
             buttons.append([
                 InlineKeyboardButton("📤 Передать", callback_data=f"transfer:{tool_id}"),
                 InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool_id}")
             ])
+        elif responsible_id is None:
+            buttons.append([InlineKeyboardButton("✅ Стать ответственным", callback_data=f"take:{tool_id}")])
         else:
             buttons.append([InlineKeyboardButton("📥 Запросить передачу", callback_data=f"request:{tool_id}")])
 

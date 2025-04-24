@@ -27,24 +27,17 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if role in ["Супервайзер", "Шеф"]:
         buttons = [
             [InlineKeyboardButton("🔍 Найти инструмент", callback_data="find_tool")],
-            [InlineKeyboardButton("📋 Весь инструмент", callback_data="all_tools")],
+            [InlineKeyboardButton("📋 Весь инструмент", callback_data="all_tools")]
         ]
-    else:  # Ответственный (или админ, пока заходит как обычный)
+    else:
         buttons = [
             [InlineKeyboardButton("🔍 Найти инструмент", callback_data="find_tool")],
-            [InlineKeyboardButton("🔨 Мои инструменты", callback_data="my_tools")],
+            [InlineKeyboardButton("🔨 Мои инструменты", callback_data="my_tools")]
         ]
 
-    buttons.append([InlineKeyboardButton("◀️ Назад", callback_data="main_back")])
+    buttons.append([InlineKeyboardButton("◀️ Главная", callback_data="main_back")])
 
-    # Определяем, откуда пришёл запрос: message или callback_query
     if update.message:
-        await update.message.reply_text(
-            "Главное меню:",
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
+        await update.message.reply_text("Главное меню:", reply_markup=InlineKeyboardMarkup(buttons))
     elif update.callback_query:
-        await update.callback_query.edit_message_text(
-            "Главное меню:",
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
+        await update.callback_query.edit_message_text("Главное меню:", reply_markup=InlineKeyboardMarkup(buttons))

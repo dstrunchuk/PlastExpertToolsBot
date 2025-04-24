@@ -23,7 +23,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     users = load_json(USERS_PATH)
 
-    # Если пользователь уже зарегистрирован, кроме админа
     if any(u["id"] == user_id for u in users):
         if user_id == ADMIN_ID:
             await update.message.reply_text("Вы зарегистрированы как админ. Можешь выбрать роль снова.")
@@ -32,8 +31,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Вы уже зарегистрированы.")
             await show_main_menu(update, context)
         return
-    
-    # Если пользователь не зарегистрирован
+
     await show_registration_menu(update)
 
 async def show_registration_menu(update: Update):
@@ -51,7 +49,6 @@ async def show_registration_menu(update: Update):
     buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in director]
     buttons.append([InlineKeyboardButton("Пропустить (Админ)", callback_data="register:ADMIN_SKIP")])
 
-    # Дополнительная кнопка для выбора роли админом
     if update.effective_user.id == ADMIN_ID:
         buttons.append([InlineKeyboardButton("Войти как...", callback_data="register:admin_choose_role")])
 
@@ -59,60 +56,3 @@ async def show_registration_menu(update: Update):
         "Выбери своё имя для регистрации:",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
-
-async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    user_id = query.from_user.id
-    parts = query.data.split(":")
-    name = parts[1]
-    role = parts[2] if len(parts) > 2 else None
-
-    users = load_json(USERS_PATH)
-
-    # Удаляем старую запись, если админ перезаходит под другой ролью
-    users = [u for u in users if u["id"] != user_id]
-
-    # Выбор роли через "Войти как..."
-    if name == "admin_choose_role":
-        buttons = [
-            [InlineKeyboardButton("✅ Ответственный", callback_data="register:Admin:Ответственный")],
-            [InlineKeyboardButton("✅ Супервайзер", callback_data="register:Admin:Супервайзер")],
-            [InlineKeyboardButton("✅ Шеф", callback_data="register:Admin:Шеф")],
-            [InlineKeyboardButton("◀️ Назад", callback_data="register:back_to_main")]
-        ]
-        await query.edit_message_text("Кем войти?", reply_markup=InlineKeyboardMarkup(buttons))
-        return
-    
-    if name == "back_to_main":
-            # Если админ нажал "Назад" — удаляем его из users.json и возвращаем в регистрацию
-        users = load_json(USERS_PATH)
-        users = [u for u in users if u["id"] != user_id]
-        save_json(USERS_PATH, users)
-        await show_registration_menu(update)
-        return
-        
-
-    if name == "ADMIN_SKIP":
-        users.append({"id": user_id, "name": "Admin", "role": "Шеф"})
-        save_json(USERS_PATH, users)
-        await query.edit_message_text("Регистрация пропущена. Вы админ.")
-        await show_main_menu(update, context)
-        return
-
-    if not role:
-        role = "Супервайзер" if name in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"] else "Ответственный"
-
-    users.append({"id": user_id, "name": name, "role": role})
-    save_json(USERS_PATH, users)
-
-    # Добавляем Telegram ID в foremen.json
-    foremen = load_json(FOREMEN_PATH)
-    for f in foremen:
-        if f["name"] == name:
-            f["id"] = user_id
-            break
-    save_json(FOREMEN_PATH, foremen)
-
-    await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {role}.")
-    await show_main_menu(update, context)
