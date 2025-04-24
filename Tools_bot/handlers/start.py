@@ -23,12 +23,15 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     users = load_json(USERS_PATH)
 
+    # Если пользователь уже зарегистрирован, кроме админа
     if any(u["id"] == user_id for u in users):
-        await update.message.reply_text("Вы уже зарегистрированы.")
-        await show_main_menu(update, context)
+        if user_id == ADMIN_ID:
+            await update.message.reply_text("Вы зарегистрированы как админ. Можешь выбрать роль снова.")
+            await show_registration_menu(update)
+        else:
+            await update.message.reply_text("Вы уже зарегистрированы.")
+            await show_main_menu(update, context)
         return
-
-    await show_registration_menu(update)
 
 async def show_registration_menu(update: Update):
     foremen = load_json(FOREMEN_PATH)
@@ -79,8 +82,13 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
     
     if name == "back_to_main":
+            # Если админ нажал "Назад" — удаляем его из users.json и возвращаем в регистрацию
+        users = load_json(USERS_PATH)
+        users = [u for u in users if u["id"] != user_id]
+        save_json(USERS_PATH, users)
         await show_registration_menu(update)
         return
+        
 
     if name == "ADMIN_SKIP":
         users.append({"id": user_id, "name": "Admin", "role": "Шеф"})
