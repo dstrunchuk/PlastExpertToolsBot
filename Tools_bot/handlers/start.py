@@ -23,10 +23,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     users = load_json(USERS_PATH)
 
-    if user_id == ADMIN_ID:
-        await update.message.reply_text("Регистрация пропущена. Вы админ.")
-        return
-
     if any(u["id"] == user_id for u in users):
         await update.message.reply_text("Вы уже зарегистрированы.")
         return
