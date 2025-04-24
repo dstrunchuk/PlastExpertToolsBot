@@ -6,6 +6,7 @@ from handlers.tools import handle_tool_search, process_tool_id
 from telegram.ext import MessageHandler, filters
 from handlers.menu import show_main_menu
 from telegram.ext import MessageHandler, filters, CallbackQueryHandler
+from telegram.ext import CallbackQueryHandler
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -21,6 +22,7 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_tool_id)
 app.add_handler(CallbackQueryHandler(handle_registration, pattern=r"^register:"))
 app.add_handler(CallbackQueryHandler(show_main_menu, pattern="^main_back$"))
 app.add_handler(CallbackQueryHandler(handle_tool_search, pattern="^find_tool$"))
+app.add_handler(CallbackQueryHandler(handle_tool_action, pattern="^(take|transfer|store|request):"))
 
 # === Запуск ===
 print("Бот запущен.")
