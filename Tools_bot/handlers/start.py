@@ -56,3 +56,54 @@ async def show_registration_menu(update: Update):
         "Выбери своё имя для регистрации:",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
+
+async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    user_id = query.from_user.id
+    parts = query.data.split(":")
+    name = parts[1]
+    role = parts[2] if len(parts) > 2 else None
+
+    users = load_json(USERS_PATH)
+
+    if name == "admin_choose_role":
+        buttons = [
+            [InlineKeyboardButton("✅ Ответственный", callback_data="register:Admin:Ответственный")],
+            [InlineKeyboardButton("✅ Супервайзер", callback_data="register:Admin:Супервайзер")],
+            [InlineKeyboardButton("✅ Шеф", callback_data="register:Admin:Шеф")],
+            [InlineKeyboardButton("◀️ Назад", callback_data="register:back_to_main")]
+        ]
+        await query.edit_message_text("Кем войти?", reply_markup=InlineKeyboardMarkup(buttons))
+        return
+
+    if name == "back_to_main":
+        users = [u for u in users if u["id"] != user_id]
+        save_json(USERS_PATH, users)
+        await show_registration_menu(update)
+        return
+
+    if name == "ADMIN_SKIP":
+        if not any(u["id"] == user_id for u in users):
+            users.append({"id": user_id, "name": "Admin", "role": "Шеф"})
+            save_json(USERS_PATH, users)
+        await query.edit_message_text("Регистрация пропущена. Вы админ.")
+        await show_main_menu(update, context)
+        return
+
+    if not role:
+        role = "Супервайзер" if name in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"] else "Ответственный"
+
+    users = [u for u in users if u["id"] != user_id]
+    users.append({"id": user_id, "name": name, "role": role})
+    save_json(USERS_PATH, users)
+
+    foremen = load_json(FOREMEN_PATH)
+    for f in foremen:
+        if f["name"] == name:
+            f["id"] = user_id
+            break
+    save_json(FOREMEN_PATH, foremen)
+
+    await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {role}.")
+    await show_main_menu(update, context)
