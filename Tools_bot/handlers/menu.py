@@ -18,7 +18,10 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data = next((u for u in users if u["id"] == user_id), None)
 
     if not user_data:
-        await update.message.reply_text("Сначала зарегистрируйся.")
+        if update.message:
+            await update.message.reply_text("Сначала зарегистрируйся.")
+        elif update.callback_query:
+            await update.callback_query.edit_message_text("Сначала зарегистрируйся.")
         return
 
     role = user_data.get("role", "Ответственный")
