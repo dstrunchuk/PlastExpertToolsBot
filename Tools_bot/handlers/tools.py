@@ -1,5 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+from telegram.constants import ParseMode
 import json
 import os
 
@@ -71,3 +72,52 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await query.edit_message_text(f"Вы запросили передачу инструмента {tool['name']} у {responsible_user['name']}.")
         else:
             await query.edit_message_text(f"Инструмент {tool['name']} ещё не закреплен за кем-либо.")
+
+async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    tool_id = update.message.text.strip()
+
+    tools = load_json(TOOLS_PATH)
+    users = load_json(USERS_PATH)
+    user = next((u for u in users if u["id"] == user_id), None)
+    role = user.get("role", "Ответственный") if user else "Ответственный"
+
+    tool = next((t for t in tools if str(t.get("id")) == tool_id), None)
+
+    if not tool:
+        await update.message.reply_text("Инструмент с таким ID не найден.")
+        return
+
+    responsible = tool.get("responsible")
+    responsible_id = tool.get("responsible_id")
+    obj = tool.get("object", "—")
+    name = tool.get("name", "Без названия")
+
+    text = f"*Инструмент:* {name}\n"
+    text += f"*ID:* {tool.get('id')}\n"
+    text += f"*Объект:* {obj}\n"
+    text += f"*Ответственный:* {responsible or 'Никто'}"
+
+    buttons = []
+
+    if role in ["Супервайзер", "Шеф"]:
+        buttons.append([InlineKeyboardButton("👤 Назначить ответственного", callback_data=f"assign:{tool_id}")])
+
+    elif role == "Ответственный":
+        if responsible_id is None:
+            buttons.append([InlineKeyboardButton("✅ Стать ответственным", callback_data=f"take:{tool_id}")])
+        elif responsible_id == user_id:
+            buttons.append([
+                InlineKeyboardButton("📤 Передать", callback_data=f"transfer:{tool_id}"),
+                InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool_id}")
+            ])
+        else:
+            buttons.append([InlineKeyboardButton("📥 Запросить передачу", callback_data=f"request:{tool_id}")])
+
+    buttons.append([InlineKeyboardButton("◀️ Главная", callback_data="main_back")])
+
+    await update.message.reply_text(
+        text,
+        reply_markup=InlineKeyboardMarkup(buttons),
+        parse_mode=ParseMode.MARKDOWN
+    )            

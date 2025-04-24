@@ -2,6 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from handlers.start import start_command, handle_registration
 from handlers.tools import handle_tool_action
+from handlers.tools import process_tool_id
 from handlers.menu import show_main_menu
 from dotenv import load_dotenv
 import os
