@@ -25,6 +25,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if any(u["id"] == user_id for u in users):
         await update.message.reply_text("Вы уже зарегистрированы.")
+        await show_main_menu(update, context)
         return
 
     await show_registration_menu(update)
@@ -42,8 +43,11 @@ async def show_registration_menu(update: Update):
     buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in supervisors]
     buttons.append([InlineKeyboardButton("— Шеф —", callback_data="ignore")])
     buttons += [[InlineKeyboardButton(name, callback_data=f"register:{name}")] for name in director]
-
     buttons.append([InlineKeyboardButton("Пропустить (Админ)", callback_data="register:ADMIN_SKIP")])
+
+    # Дополнительная кнопка для выбора роли админом
+    if update.effective_user.id == ADMIN_ID:
+        buttons.append([InlineKeyboardButton("Войти как...", callback_data="register:admin_choose_role")])
 
     await update.message.reply_text(
         "Выбери своё имя для регистрации:",
@@ -54,22 +58,35 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
-    name = query.data.split(":")[1]
+    parts = query.data.split(":")
+    name = parts[1]
+    role = parts[2] if len(parts) > 2 else None
 
     users = load_json(USERS_PATH)
 
-    if name == "ADMIN_SKIP":
-        # Добавляем админа в users.json как шефа, если его там ещё нет
-        if not any(u["id"] == user_id for u in users):
-            users.append({"id": user_id, "name": "Admin", "role": "Шеф"})
-            save_json(USERS_PATH, users)
+    # Удаляем старую запись, если админ перезаходит под другой ролью
+    users = [u for u in users if u["id"] != user_id]
 
+    # Выбор роли через "Войти как..."
+    if name == "admin_choose_role":
+        buttons = [
+            [InlineKeyboardButton("✅ Ответственный", callback_data="register:Admin:Ответственный")],
+            [InlineKeyboardButton("✅ Супервайзер", callback_data="register:Admin:Супервайзер")],
+            [InlineKeyboardButton("✅ Шеф", callback_data="register:Admin:Шеф")],
+        ]
+        await query.edit_message_text("Кем войти?", reply_markup=InlineKeyboardMarkup(buttons))
+        return
+
+    if name == "ADMIN_SKIP":
+        users.append({"id": user_id, "name": "Admin", "role": "Шеф"})
+        save_json(USERS_PATH, users)
         await query.edit_message_text("Регистрация пропущена. Вы админ.")
-        # Переход в меню
         await show_main_menu(update, context)
         return
 
-    role = "Супервайзер" if name in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"] else "Ответственный"
+    if not role:
+        role = "Супервайзер" if name in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"] else "Ответственный"
+
     users.append({"id": user_id, "name": name, "role": role})
     save_json(USERS_PATH, users)
 
