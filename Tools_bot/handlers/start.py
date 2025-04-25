@@ -48,7 +48,7 @@ async def show_registration_menu(update: Update):
         {"name": "Aleksei Panin", "role": "Супервайзер"},
         {"name": "Shamil Kurbanov", "role": "Супервайзер"},
         {"name": "Juri Teras", "role": "Супервайзер"},
-        {"name": "Alexei D", "role": "Шеф"}
+        {"name": "Alexei Dohin", "role": "Boss"}
     ]
     
     buttons = []
@@ -71,23 +71,29 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     users = load_json(USERS_PATH)
 
-    # Если это админ, пропускаем регистрацию
-    if name == "Admin" and update.effective_user.id == 987664835:
-        if not any(u["id"] == user_id for u in users):
-            users = [u for u in users if u["id"] != user_id]  # Убираем старую запись, если админ перезаходит
-            users.append({"id": user_id, "name": name, "role": "Ответственный"})
-            save_json(USERS_PATH, users)
+    if name == "Admin" and update.effective_user.id == ADMIN_ID:
+        users = [u for u in users if u["id"] != user_id]
+        users.append({"id": user_id, "name": name, "role": "Ответственный"})
+        save_json(USERS_PATH, users)
 
         await query.edit_message_text("Регистрация пропущена. Вы админ.")
         await show_main_menu(update, context)
         return
 
-    # Для всех остальных — роль автоматически определяется
-    role = "Ответственный" if name not in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras", "Alexei D"] else "Супервайзер"
+    if name == "Alexei Dohin":
+        display_role = "босс"
+        role = "Супервайзер"
+    elif name in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"]:
+        display_role = "супервайзер"
+        role = "Супервайзер"
+    else:
+        display_role = "ответственный"
+        role = "Ответственный"
+
+    users = [u for u in users if u["id"] != user_id]
     users.append({"id": user_id, "name": name, "role": role})
     save_json(USERS_PATH, users)
 
-    # Добавляем Telegram ID в foremen.json
     foremen = load_json(FOREMEN_PATH)
     for f in foremen:
         if f["name"] == name:
@@ -95,5 +101,5 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
             break
     save_json(FOREMEN_PATH, foremen)
 
-    await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {role}.")
+    await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {display_role}.")
     await show_main_menu(update, context)
