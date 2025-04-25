@@ -19,6 +19,7 @@ app.add_handler(CallbackQueryHandler(handle_tool_action, pattern="^(take|transfe
 app.add_handler(CallbackQueryHandler(show_main_menu, pattern="^main_back$"))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_tool_id))
 app.add_handler(CallbackQueryHandler(handle_registration, pattern="^register:"))
+app.add_handler(CallbackQueryHandler(handle_tool_action, pattern="^(take|store|request|transfer|assign|export|confirm_transfer|confirm_assign):"))
 
 # Запуск бота
 print("Бот запущен.")
