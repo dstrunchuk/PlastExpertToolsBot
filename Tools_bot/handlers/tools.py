@@ -1,4 +1,3 @@
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 import os
@@ -82,13 +81,12 @@ async def show_tool_card(update: Update, context: ContextTypes.DEFAULT_TYPE, too
     responsible = tool.get("responsible") or "Никто"
     on_storage = "Да" if object_.lower() == "ladu" else "Нет"
 
-    text = (
-        f"**Инструмент:** {name}\n"
-        f"**ID:** {tool_id}\n"
-        f"**Объект:** {object_}\n"
-        f"**Ответственный:** {responsible}\n"
-        f"**На складе:** {on_storage}"
-    )
+    text = f"""**Инструмент:** {name}
+    **ID:** {tool_id}
+    **Объект:** {object_}
+    **Ответственный:** {responsible}
+    **На складе:** {on_storage}"""
+    buttons = []
 
     # Кнопки по ролям
     if role == "Ответственный":
