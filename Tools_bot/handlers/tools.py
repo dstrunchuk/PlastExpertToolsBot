@@ -482,7 +482,6 @@ async def export_one_tool_history(update: Update, context: ContextTypes.DEFAULT_
     history = await get_tool_history(tool_id)
 
     if not history:
-        # Если истории нет — показываем сообщение с кнопкой
         await query.edit_message_text(
             "Нет действий с этим инструментом.",
             reply_markup=InlineKeyboardMarkup([
@@ -491,18 +490,24 @@ async def export_one_tool_history(update: Update, context: ContextTypes.DEFAULT_
         )
         return
 
-    # Если история есть — красиво оформляем
-    message = "История по инструменту:\n\n"
-    for entry in history:
-        message += (
-            f"- {entry['timestamp']}\n"
-            f"Действие: {entry['action']}\n"
-            f"Ответственный: {entry['responsible']}\n"
-            f"Объект: {entry['object']}\n\n"
-        )
+    # Генерируем Excel файл
+    df = pd.DataFrame(history)
+    file_path = f"/tmp/history_{tool_id}.xlsx"
+    df.to_excel(file_path, index=False)
 
-    await query.edit_message_text(
-        text=message.strip(),
+    # Отправляем файл пользователю
+    await query.message.reply_document(
+        document=open(file_path, "rb"),
+        filename=f"History_{tool_id}.xlsx",
+        caption="История инструмента."
+    )
+
+    # Удаляем файл после отправки
+    os.remove(file_path)
+
+    # После отправки файла отправляем кнопку на главное меню
+    await query.message.reply_text(
+        "Выберите действие:",
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
         ])

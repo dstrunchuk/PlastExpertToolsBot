@@ -181,34 +181,48 @@ async def add_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.edit_message_text("Добавление инструмента скоро будет доступно.")
 
 # ЭКСПОРТ ВСЕГО
-async def export_all_handler(update, context):
+async def export_all_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
 
-    # Загружаем все записи из pending
-    async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute("""
-            SELECT timestamp, user_id, action, tool_id, tool_name, object, responsible
-            FROM pending
-            ORDER BY timestamp DESC
-        """)
-        rows = await cursor.fetchall()
+    tools = await get_all_tools()
 
-    if not rows:
-        await update.callback_query.edit_message_text("История пока пустая, нечего экспортировать.")
+    if not tools:
+        await update.callback_query.edit_message_text(
+            "Нет доступных инструментов для экспорта.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ])
+        )
         return
 
-    # Создаём DataFrame
-    df = pd.DataFrame(rows, columns=["Время", "ID пользователя", "Действие", "ID инструмента", "Название инструмента", "Объект", "Ответственный"])
+    # Готовим данные для таблицы
+    data = []
+    for tool in tools:
+        data.append({
+            "Название": tool.get("name", "Без названия"),
+            "ID": tool.get("id", "Без ID"),
+            "Объект": tool.get("object", "Не указан"),
+            "Ответственный": tool.get("responsible", "Никто")
+        })
 
-    # Сохраняем в файл
-    filename = "pending_export.xlsx"
-    df.to_excel(filename, index=False)
+    df = pd.DataFrame(data)
 
-    # Отправляем файл
-    await update.callback_query.message.reply_document(InputFile(filename), caption="Экспорт истории действий:")
+    # Сохраняем файл временно
+    file_path = "tools_export.xlsx"
+    df.to_excel(file_path, index=False)
 
-    # Сообщение о возврате в меню
-    await update.callback_query.edit_message_text("Экспорт завершён. Можете продолжать работу.")
+    # Отправляем файл пользователю
+    await update.effective_chat.send_document(
+        document=open(file_path, "rb"),
+        filename="Инструменты.xlsx",
+        caption="Экспорт всех инструментов."
+    )
+
+    # Удаляем файл после отправки
+    try:
+        os.remove(file_path)
+    except Exception as e:
+        print(f"Не удалось удалить файл: {e}")
 
 # АДМИН-МЕНЮ
 async def admin_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
