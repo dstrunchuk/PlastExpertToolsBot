@@ -61,25 +61,56 @@ async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
     user_id = update.effective_user.id
     tools = load_json(TOOLS_PATH)
+
     my_tools = [tool for tool in tools if tool.get("responsible_id") == user_id]
 
     if not my_tools:
         await update.callback_query.edit_message_text("У вас нет закрепленных инструментов.")
         return
 
-    keyboard = []
-    for idx, tool in enumerate(my_tools):
-        tool_id = tool.get("id")
-        if not tool_id or str(tool_id).lower() == "nan":
-            callback_data = f"view_tool_by_index:{idx}"
-            button_text = f"{tool.get('name', 'Без названия')} (без ID)"
-        else:
-            callback_data = f"view_tool:{tool_id}"
-            button_text = f"{tool.get('name', 'Без названия')} (ID: {tool_id})"
+    # Пагинация
+    page = context.user_data.get("page_my_tools", 0)
+    tools_per_page = 5
+    start = page * tools_per_page
+    end = start + tools_per_page
+    current_tools = my_tools[start:end]
 
-        keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
+    if not current_tools:
+        await update.callback_query.edit_message_text("Инструменты не найдены на этой странице.")
+        return
 
-    await update.callback_query.edit_message_text("Ваши инструменты:", reply_markup=InlineKeyboardMarkup(keyboard))
+    message = "Ваши инструменты:\n\n"
+    for tool in current_tools:
+        name = tool.get("name", "Без названия")
+        tool_id = tool.get("id", "Без ID")
+        responsible = tool.get("responsible", "Никто")
+        object_name = tool.get("object", "Не указан")
+        message += (f"*Название:* {name}\n"
+                    f"*ID:* {tool_id}\n"
+                    f"*Объект:* {object_name}\n"
+                    f"*Ответственный:* {responsible}\n\n")
+
+    buttons = []
+
+    if start > 0:
+        buttons.append(InlineKeyboardButton("◀️ Назад", callback_data="my_tools_prev"))
+    if end < len(my_tools):
+        buttons.append(InlineKeyboardButton("Вперёд ▶️", callback_data="my_tools_next"))
+
+    buttons.append(InlineKeyboardButton("◀️ Главное меню", callback_data="main_back"))
+
+    await update.callback_query.edit_message_text(
+        message.strip(),
+        parse_mode="Markdown",
+        reply_markup=InlineKeyboardMarkup([buttons])
+    )
+async def my_tools_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["page_my_tools"] = max(context.user_data.get("page_my_tools", 0) - 1, 0)
+    await my_tools_handler(update, context)
+
+async def my_tools_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["page_my_tools"] = context.user_data.get("page_my_tools", 0) + 1
+    await my_tools_handler(update, context)    
 
 # НАЙТИ ИНСТРУМЕНТ
 async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
