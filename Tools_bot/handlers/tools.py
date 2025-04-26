@@ -127,22 +127,27 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
             ]))
 
     elif action == "transfer":
-        # Показать список ответственных
         buttons = []
+        added_names = set()
         for person in foremen:
-            if person["role"] == "Ответственный":
+            if person["role"] == "Ответственный" and person["name"] not in added_names:
                 buttons.append([
                     InlineKeyboardButton(person["name"], callback_data=f"confirm_transfer:{tool_id}:{person['id']}")
                 ])
+                added_names.add(person["name"])
+        buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
         await query.edit_message_text("Кому передать инструмент?", reply_markup=InlineKeyboardMarkup(buttons))
 
     elif action == "assign":
-        # Показать список всех прорабов
         buttons = []
+        added_names = set()
         for person in foremen:
-            buttons.append([
-                InlineKeyboardButton(person["name"], callback_data=f"confirm_assign:{tool_id}:{person['id']}")
-            ])
+            if person["name"] not in added_names:
+                buttons.append([
+                    InlineKeyboardButton(person["name"], callback_data=f"confirm_assign:{tool_id}:{person['id']}")
+                ])
+                added_names.add(person["name"])
+        buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
         await query.edit_message_text("Кого назначить ответственным?", reply_markup=InlineKeyboardMarkup(buttons))
 
     elif action == "confirm_transfer":
@@ -249,10 +254,10 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
+    # Если найден один инструмент
     if len(found_tools) == 1:
         tool = found_tools[0]
 
-        # Готовим текст карточки
         text = (
             f"Название: {tool.get('name', 'Без названия')}\n"
             f"ID: {tool.get('id', 'Нет ID')}\n"
@@ -260,35 +265,61 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Ответственный: {tool.get('responsible', 'Никто')}"
         )
 
-        # Генерируем кнопки действий
         buttons = generate_action_buttons(tool, role)
-
-        # Вставляем кнопку "История" отдельно в начало
         buttons.insert(0, [InlineKeyboardButton("🗂 История", callback_data=f"export_one:{tool.get('id')}")])
 
         await update.effective_chat.send_message(
             text=text,
             reply_markup=InlineKeyboardMarkup(buttons)
         )
+        return
 
-    else:
-        # Найдено несколько
-        message = "Найдено несколько инструментов:\n\n"
-        keyboard = []
+    # Если найдено несколько инструментов
+    context.user_data["found_tools"] = found_tools
+    context.user_data["search_page"] = 0
 
-        for idx, tool in enumerate(found_tools):
-            message += f"{idx+1}. {tool.get('name', 'Без названия')} (ID: {tool.get('id', 'Нет ID')})\n"
-            keyboard.append([
-                InlineKeyboardButton(f"{tool.get('name', 'Без названия')}", callback_data=f"view_tool:{tool.get('id')}")
-            ])
+    await send_search_results(update, context)
 
-        # Добавляем кнопку "Главное меню"
-        keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
+async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    found_tools = context.user_data.get("found_tools", [])
+    page = context.user_data.get("search_page", 0)
 
+    tools_per_page = 5
+    start = page * tools_per_page
+    end = start + tools_per_page
+    page_tools = found_tools[start:end]
+
+    if not page_tools:
         await update.effective_chat.send_message(
-            text=message,
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            "Инструменты не найдены на этой странице.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ])
         )
+        return
+
+    text = "Найдено несколько инструментов:\n\n"
+    for idx, tool in enumerate(page_tools, start=1 + start):
+        text += (
+            f"{idx}. {tool.get('name', 'Без названия')}\n"
+            f"ID: {tool.get('id', 'Нет ID')}\n"
+            f"Ответственный: {tool.get('responsible', 'Никто')}\n"
+            f"Объект: {tool.get('object', 'Не указан')}\n\n"
+        )
+
+    buttons = []
+    nav_buttons = []
+    if page > 0:
+        nav_buttons.append(InlineKeyboardButton("◀️ Назад", callback_data="search_prev"))
+    if end < len(found_tools):
+        nav_buttons.append(InlineKeyboardButton("Вперёд ▶️", callback_data="search_next"))
+    buttons.append(nav_buttons)
+    buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
+
+    await update.effective_chat.send_message(
+        text=text.strip(),
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
         
 async def show_tool_card(update: Update, tool: dict):
     name = tool.get("name", "Без названия")
