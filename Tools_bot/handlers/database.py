@@ -139,7 +139,7 @@ async def log_action(user_id, action, tool):
 async def save_user(user):
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute(
-            "INSERT INTO users (id, name, role) VALUES (?, ?, ?)",
+            "INSERT OR REPLACE INTO users (id, name, role) VALUES (?, ?, ?)",
             (user["id"], user["name"], user["role"])
         )
         await db.commit()

@@ -33,7 +33,10 @@ async def send_message(update: Update, text: str):
 async def show_registration_menu(update: Update):
     foremen = await get_all_foremen()
 
-    # Добавляем ручную строку для Admin
+    # Убираем Admin из foremen если там есть
+    foremen = [f for f in foremen if f["name"] != "Admin"]
+
+    # Добавляем Admin вручную
     users_data = [{"name": "Admin", "role": "Супервайзер", "id": ADMIN_ID}] + foremen
 
     buttons = []
@@ -43,16 +46,10 @@ async def show_registration_menu(update: Update):
         else:
             buttons.append([InlineKeyboardButton(user['name'], callback_data=f"register:{user['name']}")])
 
-    if update.message:
-        await update.message.reply_text(
-            "Выбери своё имя для регистрации:",
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
-    elif update.callback_query:
-        await update.callback_query.edit_message_text(
-            "Выбери своё имя для регистрации:",
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
+    await update.message.reply_text(
+        "Выбери своё имя для регистрации:",
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
 
 # Обработка выбора имени
 async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
