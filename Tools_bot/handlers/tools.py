@@ -2,6 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputFi
 from telegram.ext import ContextTypes
 import os, json
 import pandas as pd
+from io import BytesIO
 from datetime import datetime
 from handlers.database import get_tool_by_id, update_tool, log_action, get_all_foremen, get_all_users, get_all_tools, get_tool_history, get_user_by_id
 import re
@@ -473,5 +474,30 @@ async def export_pending_to_excel(update: Update, context: ContextTypes.DEFAULT_
     # Сообщение после отправки
     await query.edit_message_text("Файл истории успешно создан и отправлен!")
 
-    
+async def export_one_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    tool_id = query.data.split(":")[1]
+
+    # Получаем историю по инструменту
+    history = await get_tool_history(tool_id)
+
+    if not history:
+        await query.edit_message_text("История по этому инструменту пуста.", reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ]))
+        return
+
+    # Генерируем Excel
+    df = pd.DataFrame(history)
+    excel_buffer = BytesIO()
+    df.to_excel(excel_buffer, index=False)
+    excel_buffer.seek(0)
+
+    # Отправляем файл
+    await query.message.reply_document(
+        document=InputFile(excel_buffer, filename=f"history_{tool_id}.xlsx"),
+        caption=f"История инструмента ID: {tool_id}"
+    )   
 
