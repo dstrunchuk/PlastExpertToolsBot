@@ -16,11 +16,12 @@ from handlers.menu import (
     add_object_handler,
 )
 from handlers.start import start_command, handle_registration
-from handlers.database import init_db, migrate_json_to_db, seed_foremen
+from handlers.database import init_db, migrate_json_to_db, seed_foremen, connect_db
 from dotenv import load_dotenv
 import os
 import asyncio
-from migrate_to_supabase import migrate_to_supabase
+
+pool = None
 
 # Инициализация бота
 load_dotenv()
@@ -29,12 +30,15 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Прописан в .env
 
 async def on_startup(app):
-    await init_db()
-    await migrate_json_to_db()
-    await seed_foremen()  # <<< Добавляем этот вызов
-    await app.bot.set_webhook(WEBHOOK_URL)
+    global pool
+    pool = await connect_db()
 
-asyncio.run(migrate_to_supabase())
+    await init_db(pool)
+    await migrate_json_to_db(pool)
+    await seed_foremen(pool)
+    await app.bot.set_webhook(WEBHOOK_URL)
+    print("✅ База подключена")
+
     
 
 app = ApplicationBuilder().token(BOT_TOKEN).post_init(on_startup).build()
