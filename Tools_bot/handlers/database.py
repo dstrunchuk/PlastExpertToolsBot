@@ -1,6 +1,7 @@
 import os
 import json
 from datetime import datetime
+import asyncpg
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 USERS_PATH = os.path.join(DATA_DIR, "users.json")
