@@ -3,6 +3,8 @@ from telegram.ext import ContextTypes
 import os, json
 import pandas as pd
 from datetime import datetime
+from handlers.database import get_tool_by_id, update_tool, log_action, get_all_foremen, get_all_users
+import re
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 TOOLS_PATH = os.path.join(DATA_DIR, "tools.json")
@@ -46,37 +48,35 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
-    users = load_json(USERS_PATH)
-    foremen = load_json(FOREMEN_PATH)
-    tools = load_json(TOOLS_PATH)
 
     data = query.data
     parts = data.split(":")
     action = parts[0]
     tool_id = parts[1]
 
-    tool = next((t for t in tools if str(t["id"]) == tool_id), None)
-    user = next((u for u in users if u["id"] == user_id), None)
-    role = user.get("role", "Ответственный") if user else "Ответственный"
-
+    tool = await get_tool_by_id(tool_id)
     if not tool:
         await query.edit_message_text("Инструмент не найден.")
         return
+
+    users = await get_all_users()
+    foremen = await get_all_foremen()
+    user = next((u for u in users if u["id"] == user_id), None)
 
     if action == "take":
         if user:
             tool["responsible"] = user["name"]
             tool["responsible_id"] = user_id
-            save_json(TOOLS_PATH, tools)
-            log_action(user_id, "Стал ответственным", tool)
+            await update_tool(tool_id, tool)
+            await log_action(user_id, "Стал ответственным", tool)
             await send_success_message(query, f"Вы стали ответственным за {tool['name']}.")
 
     elif action == "store":
         tool["responsible"] = None
         tool["responsible_id"] = None
         tool["object"] = "Ladu"
-        save_json(TOOLS_PATH, tools)
-        log_action(user_id, "Оставил на складе", tool)
+        await update_tool(tool_id, tool)
+        await log_action(user_id, "Оставил на складе", tool)
         await send_success_message(query, f"Инструмент {tool['name']} возвращен на склад.")
 
     elif action == "request":
@@ -85,7 +85,6 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
             responsible_user = next((u for u in users if u["id"] == responsible_id), None)
             if responsible_user:
                 try:
-                    # Отправляем уведомление ответственному
                     await context.bot.send_message(
                         chat_id=responsible_id,
                         text=f"🔔 Пользователь {user['name']} хочет получить у вас инструмент *{tool['name']}* (ID: {tool.get('id', 'Без ID')}).",
@@ -101,7 +100,6 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await query.edit_message_text("Инструмент не имеет текущего ответственного.")
 
     elif action == "transfer":
-        # Показать список сотрудников
         buttons = []
         for person in foremen:
             if person["role"] == "Ответственный":
@@ -111,7 +109,6 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.edit_message_text("Кому передать инструмент?", reply_markup=InlineKeyboardMarkup(buttons))
 
     elif action == "assign":
-        # Список для назначения ответственным
         buttons = []
         for person in foremen:
             buttons.append([
@@ -125,8 +122,8 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if new_resp:
             tool["responsible"] = new_resp["name"]
             tool["responsible_id"] = new_resp["id"]
-            save_json(TOOLS_PATH, tools)
-            log_action(user_id, f"Передал {tool['name']} → {new_resp['name']}", tool)
+            await update_tool(tool_id, tool)
+            await log_action(user_id, f"Передал {tool['name']} → {new_resp['name']}", tool)
             await send_success_message(query, f"Инструмент {tool['name']} передан {new_resp['name']}.")
         else:
             await query.edit_message_text("Не удалось передать инструмент.")
@@ -137,8 +134,8 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if new_resp:
             tool["responsible"] = new_resp["name"]
             tool["responsible_id"] = new_resp["id"]
-            save_json(TOOLS_PATH, tools)
-            log_action(user_id, f"Назначил {new_resp['name']} ответственным", tool)
+            await update_tool(tool_id, tool)
+            await log_action(user_id, f"Назначил {new_resp['name']} ответственным", tool)
             await send_success_message(query, f"{new_resp['name']} назначен ответственным за {tool['name']}.")
         else:
             await query.edit_message_text("Не удалось назначить ответственного.")
@@ -161,50 +158,53 @@ async def update_tool_card(query, tool: dict, user_id: int):
     await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=reply_markup)
 
 async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_input = update.message.text.strip()
-    tools = load_json(TOOLS_PATH)
+    user_message = update.message.text.strip()
+    user_id = update.effective_user.id
 
-    # Удаляем сообщение пользователя
-    try:
-        await update.message.delete()
-    except:
-        pass  # если вдруг сообщение уже удалено или нет прав, просто игнорируем ошибку
+    tools = await get_all_tools()
 
-    # Поиск по точному ID
-    found_tools = [tool for tool in tools if str(tool.get("id")) == user_input]
+    # Ищем сначала по ID (точное совпадение)
+    found_tools = [tool for tool in tools if str(tool["id"]) == user_message]
 
-    # Если по ID не найдено, ищем по названию
+    # Если по ID не нашли — ищем по названию (нечувствительно к регистру, частичное совпадение)
     if not found_tools:
-        found_tools = [tool for tool in tools if user_input.lower() in tool.get("name", "").lower()]
+        pattern = re.compile(re.escape(user_message), re.IGNORECASE)
+        found_tools = [tool for tool in tools if pattern.search(tool["name"])]
 
     if not found_tools:
-        await update.message.reply_text("Инструмент не найден.")
+        await update.message.reply_text(
+            "Инструмент не найден.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]])
+        )
         return
 
     if len(found_tools) == 1:
+        # Один инструмент найден
         tool = found_tools[0]
+        from handlers.tools import create_tool_card_text, generate_action_buttons
         text = create_tool_card_text(tool)
-        buttons = generate_action_buttons(tool, role="Ответственный")
-        reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
-        await update.message.reply_text(text=text, reply_markup=reply_markup)
+        buttons = generate_action_buttons(tool, role="Ответственный")  # пока роль стандартная
+        await update.message.reply_text(text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(buttons))
     else:
-        message = "Найдено несколько инструментов:\n\n"
+        # Найдено несколько инструментов
         keyboard = []
-
         for idx, tool in enumerate(found_tools):
             tool_id = tool.get("id")
             if not tool_id or str(tool_id).lower() == "nan":
-                callback_data = f"view_tool_by_index:{tools.index(tool)}"
-                message += f"{idx+1}. {tool.get('name', 'Без названия')} (без ID)\n\n"
+                callback_data = f"view_tool_by_index:{idx}"
+                button_text = f"{tool.get('name', 'Без названия')} (без ID)"
             else:
                 callback_data = f"view_tool:{tool_id}"
-                message += f"{idx+1}. {tool.get('name', 'Без названия')} (ID: {tool_id})\n\n"
+                button_text = f"{tool.get('name', 'Без названия')} (ID: {tool_id})"
 
-            keyboard.append([InlineKeyboardButton(f"Посмотреть {idx+1}", callback_data=callback_data)])
+            keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
 
         keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
-        await update.message.reply_text(message.strip(), reply_markup=InlineKeyboardMarkup(keyboard))
+        await update.message.reply_text(
+            "Найдено несколько инструментов:",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
 
 async def show_tool_card(update: Update, tool: dict):
     name = tool.get("name", "Без названия")

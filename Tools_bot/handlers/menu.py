@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes
 import os
 import json
 from handlers.tools import load_json, TOOLS_PATH, export_pending_to_excel
+from handlers.database import get_all_tools
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 USERS_PATH = os.path.join(DATA_DIR, "users.json")
@@ -60,12 +61,13 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
     user_id = update.effective_user.id
-    tools = load_json(TOOLS_PATH)
+
+    tools = await get_all_tools()  # Теперь берём через базу!
 
     my_tools = [tool for tool in tools if tool.get("responsible_id") == user_id]
 
     if not my_tools:
-        context.user_data["page_my_tools"] = 0  # <<< сбрасываем страницу!
+        context.user_data["page_my_tools"] = 0
         keyboard = [
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
         ]
@@ -106,7 +108,8 @@ async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     buttons.append(InlineKeyboardButton("◀️ Главное меню", callback_data="main_back"))
 
-    await update.callback_query.edit_message_text(message.strip(), reply_markup=InlineKeyboardMarkup([buttons]))
+    await update.callback_query.edit_message_text(message.strip(), parse_mode="Markdown", reply_markup=InlineKeyboardMarkup([buttons]))
+
 async def my_tools_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["page_my_tools"] = max(context.user_data.get("page_my_tools", 0) - 1, 0)
     await my_tools_handler(update, context)
@@ -124,9 +127,13 @@ async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def all_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
 
-    tools = load_json(TOOLS_PATH)
+    tools = await get_all_tools()
+
     if not tools:
-        await update.callback_query.edit_message_text("Инструменты не найдены.")
+        await update.callback_query.edit_message_text(
+            "Инструменты не найдены.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]])
+        )
         return
 
     # Пагинация
@@ -137,15 +144,19 @@ async def all_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     current_tools = tools[start:end]
 
     if not current_tools:
-        await update.callback_query.edit_message_text("Инструменты не найдены на этой странице.")
+        await update.callback_query.edit_message_text(
+            "Инструменты не найдены на этой странице.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]])
+        )
         return
 
-    message = "Все инструменты:\n\n"
+    message = "Список инструментов:\n\n"
     for tool in current_tools:
         name = tool.get("name", "Без названия")
         tool_id = tool.get("id", "Без ID")
         responsible = tool.get("responsible", "Никто")
         object_name = tool.get("object", "Не указан")
+
         message += (f"*Название:* {name}\n"
                     f"*ID:* {tool_id}\n"
                     f"*Объект:* {object_name}\n"
@@ -160,7 +171,11 @@ async def all_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     buttons.append(InlineKeyboardButton("◀️ Главное меню", callback_data="main_back"))
 
-    await update.callback_query.edit_message_text(message.strip(), reply_markup=InlineKeyboardMarkup([buttons]))
+    await update.callback_query.edit_message_text(
+        message.strip(),
+        parse_mode="Markdown",
+        reply_markup=InlineKeyboardMarkup([buttons])
+    )
 
 async def all_tools_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["page_all_tools"] = max(context.user_data.get("page_all_tools", 0) - 1, 0)

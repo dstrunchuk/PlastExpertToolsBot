@@ -1,4 +1,5 @@
 import aiosqlite
+from datetime import datetime
 
 DB_PATH = "database.db"
 
@@ -87,3 +88,48 @@ async def get_tool_history(tool_id):
         )
         rows = await cursor.fetchall()
         return [dict(zip(["timestamp", "user_id", "action", "tool_name", "object", "responsible"], row)) for row in rows]
+    
+import aiosqlite
+
+async def get_all_foremen():
+    async with aiosqlite.connect("database.db") as db:
+        cursor = await db.execute("SELECT id, name, role FROM foremen")
+        rows = await cursor.fetchall()
+        result = []
+        for row in rows:
+            result.append({
+                "id": row[0],
+                "name": row[1],
+                "role": row[2]
+            })
+        return result
+    
+async def get_tool_by_id(tool_id):
+    async with aiosqlite.connect("database.db") as db:
+        cursor = await db.execute("SELECT id, name, object, responsible, responsible_id FROM tools WHERE id = ?", (tool_id,))
+        row = await cursor.fetchone()
+        if row:
+            return {
+                "id": row[0],
+                "name": row[1],
+                "object": row[2],
+                "responsible": row[3],
+                "responsible_id": row[4]
+            }
+        return None
+    
+async def log_action(user_id, action, tool):
+    async with aiosqlite.connect("database.db") as db:
+        await db.execute("""
+            INSERT INTO pending (timestamp, user_id, action, tool_id, tool_name, object, responsible)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            datetime.now().isoformat(),
+            user_id,
+            action,
+            tool.get("id"),
+            tool.get("name"),
+            tool.get("object"),
+            tool.get("responsible")
+        ))
+        await db.commit()
