@@ -198,6 +198,29 @@ async def show_multiple_tools(update: Update, tools: list):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Найдено несколько инструментов:", reply_markup=reply_markup)
 
+async def handle_view_tool(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    tools = load_json(TOOLS_PATH)
+    tool_id = query.data.split(":")[1]
+    tool = next((t for t in tools if str(t.get("id")) == tool_id), None)
+
+    if not tool:
+        await query.edit_message_text("Инструмент не найден.")
+        return
+
+    user_id = query.from_user.id
+    users = load_json(USERS_PATH)
+    user = next((u for u in users if u["id"] == user_id), None)
+    role = user.get("role", "Ответственный") if user else "Ответственный"
+
+    text = create_tool_card_text(tool)
+    buttons = generate_action_buttons(tool, role)
+    reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
+
+    await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=reply_markup)
+
 async def handle_view_tool_by_index(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -283,3 +306,4 @@ async def export_pending_to_excel(update: Update, context: ContextTypes.DEFAULT_
     
     # Сообщение после отправки
     await query.edit_message_text("Файл истории успешно создан и отправлен!")
+
