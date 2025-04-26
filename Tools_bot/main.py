@@ -23,6 +23,7 @@ import asyncio
 
 pool = None
 
+
 # Инициализация бота
 load_dotenv()
 
@@ -37,6 +38,7 @@ async def on_startup(app):
     await migrate_json_to_db(pool)
     await seed_foremen(pool)
     await app.bot.set_webhook(WEBHOOK_URL)
+    await migrate_local_to_remote()
     print("✅ База подключена")
 
     
