@@ -474,30 +474,37 @@ async def export_pending_to_excel(update: Update, context: ContextTypes.DEFAULT_
     # Сообщение после отправки
     await query.edit_message_text("Файл истории успешно создан и отправлен!")
 
-async def export_one_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def export_one_tool_history(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
     tool_id = query.data.split(":")[1]
-
-    # Получаем историю по инструменту
     history = await get_tool_history(tool_id)
 
     if not history:
-        await query.edit_message_text("История по этому инструменту пуста.", reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
-        ]))
+        # Если истории нет — показываем сообщение с кнопкой
+        await query.edit_message_text(
+            "Нет действий с этим инструментом.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ])
+        )
         return
 
-    # Генерируем Excel
-    df = pd.DataFrame(history)
-    excel_buffer = BytesIO()
-    df.to_excel(excel_buffer, index=False)
-    excel_buffer.seek(0)
+    # Если история есть — красиво оформляем
+    message = "История по инструменту:\n\n"
+    for entry in history:
+        message += (
+            f"- {entry['timestamp']}\n"
+            f"Действие: {entry['action']}\n"
+            f"Ответственный: {entry['responsible']}\n"
+            f"Объект: {entry['object']}\n\n"
+        )
 
-    # Отправляем файл
-    await query.message.reply_document(
-        document=InputFile(excel_buffer, filename=f"history_{tool_id}.xlsx"),
-        caption=f"История инструмента ID: {tool_id}"
+    await query.edit_message_text(
+        text=message.strip(),
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ])
     )   
 
