@@ -493,3 +493,21 @@ async def export_one_tool_history(update: Update, context: ContextTypes.DEFAULT_
         ])
     )   
 
+async def search_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    page = context.user_data.get("search_page", 0)
+    if page > 0:
+        context.user_data["search_page"] = page - 1
+
+    await send_search_results(update, context)
+
+async def search_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    page = context.user_data.get("search_page", 0)
+    context.user_data["search_page"] = page + 1
+
+    await send_search_results(update, context)
