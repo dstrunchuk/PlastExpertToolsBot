@@ -1,3 +1,5 @@
+import json
+import os
 import aiosqlite
 from datetime import datetime
 
@@ -165,3 +167,74 @@ async def add_foreman_if_missing(name, role, user_id):
             (name, role, user_id)
         )
         await db.commit()
+        
+DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
+
+USERS_PATH = os.path.join(DATA_DIR, "users.json")
+TOOLS_PATH = os.path.join(DATA_DIR, "tools.json")
+FOREMEN_PATH = os.path.join(DATA_DIR, "foremen.json")
+PENDING_PATH = os.path.join(DATA_DIR, "pending.json")
+DB_PATH = "database.db"
+
+async def migrate_json_to_db():
+    async with aiosqlite.connect(DB_PATH) as db:
+        # Перенос users.json
+        if os.path.exists(USERS_PATH):
+            with open(USERS_PATH, "r", encoding="utf-8") as f:
+                users = json.load(f)
+                for user in users:
+                    await db.execute(
+                        "INSERT OR IGNORE INTO users (id, name, role) VALUES (?, ?, ?)",
+                        (user["id"], user["name"], user["role"])
+                    )
+
+        # Перенос tools.json
+        if os.path.exists(TOOLS_PATH):
+            with open(TOOLS_PATH, "r", encoding="utf-8") as f:
+                tools = json.load(f)
+                for tool in tools:
+                    await db.execute(
+                        "INSERT OR IGNORE INTO tools (id, name, object, responsible, responsible_id) VALUES (?, ?, ?, ?, ?)",
+                        (
+                            str(tool["id"]),
+                            tool.get("name", ""),
+                            tool.get("object", ""),
+                            tool.get("responsible"),
+                            tool.get("responsible_id")
+                        )
+                    )
+
+        # Перенос foremen.json
+        if os.path.exists(FOREMEN_PATH):
+            with open(FOREMEN_PATH, "r", encoding="utf-8") as f:
+                foremen = json.load(f)
+                for foreman in foremen:
+                    await db.execute(
+                        "INSERT OR IGNORE INTO foremen (id, name, role) VALUES (?, ?, ?)",
+                        (
+                            foreman.get("id", 0),  # если нет id, ставим 0, потом обновится
+                            foreman["name"],
+                            foreman["role"]
+                        )
+                    )
+
+        # Перенос pending.json
+        if os.path.exists(PENDING_PATH):
+            with open(PENDING_PATH, "r", encoding="utf-8") as f:
+                pending = json.load(f)
+                for action in pending:
+                    await db.execute(
+                        "INSERT INTO pending (timestamp, user_id, action, tool_id, tool_name, object, responsible) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (
+                            action.get("timestamp", datetime.now().isoformat()),
+                            action.get("user_id"),
+                            action.get("action"),
+                            str(action.get("tool_id")),
+                            action.get("tool_name", ""),
+                            action.get("object", ""),
+                            action.get("responsible", "")
+                        )
+                    )
+
+        await db.commit()
+    print("✅ Миграция JSON в базу завершена.")
