@@ -1,48 +1,99 @@
-import aiosqlite
 import asyncpg
 import os
+from datetime import datetime
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-LOCAL_DB = "database.db"
 
-async def migrate_local_to_remote():
-    print("Начинаем миграцию данных...")
-    # Подключение к локальной базе
-    async with aiosqlite.connect(LOCAL_DB) as local_db:
-        # Подключение к удалённой базе
-        remote_pool = await asyncpg.create_pool(DATABASE_URL)
+# Создание пула подключений
+async def connect_db():
+    pool = await asyncpg.create_pool(DATABASE_URL)
+    return pool
 
-        async with remote_pool.acquire() as remote_conn:
-            # Перенос пользователей
-            users = await local_db.execute_fetchall("SELECT id, name, role FROM users")
-            for user in users:
-                await remote_conn.execute("""
-                    INSERT INTO users (id, name, role) VALUES ($1, $2, $3)
-                    ON CONFLICT (id) DO NOTHING
-                """, user[0], user[1], user[2])
+# Получение всех инструментов
+async def get_all_tools(pool):
+    async with pool.acquire() as connection:
+        rows = await connection.fetch("SELECT id, name, object, responsible, responsible_id FROM tools")
+        return [dict(row) for row in rows]
 
-            # Перенос инструментов
-            tools = await local_db.execute_fetchall("SELECT id, name, object, responsible, responsible_id FROM tools")
-            for tool in tools:
-                await remote_conn.execute("""
-                    INSERT INTO tools (id, name, object, responsible, responsible_id) VALUES ($1, $2, $3, $4, $5)
-                    ON CONFLICT (id) DO NOTHING
-                """, tool[0], tool[1], tool[2], tool[3], tool[4])
+# Получение одного инструмента по ID
+async def get_tool_by_id(pool, tool_id):
+    async with pool.acquire() as connection:
+        row = await connection.fetchrow(
+            "SELECT id, name, object, responsible, responsible_id FROM tools WHERE id = $1", tool_id
+        )
+        return dict(row) if row else None
 
-            # Перенос прорабов
-            foremen = await local_db.execute_fetchall("SELECT id, name, role FROM foremen")
-            for foreman in foremen:
-                await remote_conn.execute("""
-                    INSERT INTO foremen (id, name, role) VALUES ($1, $2, $3)
-                    ON CONFLICT (id) DO NOTHING
-                """, foreman[0], foreman[1], foreman[2])
+# Добавление нового инструмента
+async def add_tool(pool, tool):
+    async with pool.acquire() as connection:
+        await connection.execute(
+            "INSERT INTO tools (id, name, object, responsible, responsible_id) VALUES ($1, $2, $3, $4, $5)",
+            tool["id"], tool["name"], tool["object"], tool.get("responsible"), tool.get("responsible_id")
+        )
 
-            # Перенос истории
-            pending = await local_db.execute_fetchall("SELECT timestamp, user_id, action, tool_id, tool_name, object, responsible FROM pending")
-            for action in pending:
-                await remote_conn.execute("""
-                    INSERT INTO pending (timestamp, user_id, action, tool_id, tool_name, object, responsible)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
-                """, action[0], action[1], action[2], action[3], action[4], action[5], action[6])
+# Обновление существующего инструмента
+async def update_tool(pool, tool):
+    async with pool.acquire() as connection:
+        await connection.execute(
+            "UPDATE tools SET name = $1, object = $2, responsible = $3, responsible_id = $4 WHERE id = $5",
+            tool["name"], tool["object"], tool.get("responsible"), tool.get("responsible_id"), tool["id"]
+        )
 
-    print("✅ Миграция завершена успешно!")
+# Получение всех пользователей
+async def get_all_users(pool):
+    async with pool.acquire() as connection:
+        rows = await connection.fetch("SELECT id, name, role FROM users")
+        return [dict(row) for row in rows]
+
+# Сохранение пользователя (добавить или обновить)
+async def save_user(pool, user):
+    async with pool.acquire() as connection:
+        await connection.execute(
+            "INSERT INTO users (id, name, role) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, role = EXCLUDED.role",
+            user["id"], user["name"], user["role"]
+        )
+
+# Получение пользователя по ID
+async def get_user_by_id(pool, user_id):
+    async with pool.acquire() as connection:
+        row = await connection.fetchrow("SELECT id, name, role FROM users WHERE id = $1", user_id)
+        return dict(row) if row else None
+
+# Получение всех прорабов
+async def get_all_foremen(pool):
+    async with pool.acquire() as connection:
+        rows = await connection.fetch("SELECT id, name, role FROM foremen")
+        return [dict(row) for row in rows]
+
+# Добавление нового прораба (если нет)
+async def add_foreman_if_missing(pool, name, role, user_id):
+    async with pool.acquire() as connection:
+        await connection.execute(
+            "INSERT INTO foremen (id, name, role) VALUES ($1, $2, $3)",
+            user_id, name, role
+        )
+
+# Обновление ID у прораба
+async def update_foreman_id(pool, name, user_id):
+    async with pool.acquire() as connection:
+        await connection.execute(
+            "UPDATE foremen SET id = $1 WHERE name = $2",
+            user_id, name
+        )
+
+# Логирование действий с инструментом
+async def log_action(pool, user_id, action, tool):
+    async with pool.acquire() as connection:
+        await connection.execute(
+            "INSERT INTO pending (timestamp, user_id, action, tool_id, tool_name, object, responsible) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+            datetime.now().isoformat(), user_id, action, tool.get("id"), tool.get("name"), tool.get("object"), tool.get("responsible")
+        )
+
+# Получение истории по инструменту
+async def get_tool_history(pool, tool_id):
+    async with pool.acquire() as connection:
+        rows = await connection.fetch(
+            "SELECT timestamp, user_id, action, tool_name, object, responsible FROM pending WHERE tool_id = $1 ORDER BY timestamp DESC",
+            tool_id
+        )
+        return [dict(row) for row in rows]
