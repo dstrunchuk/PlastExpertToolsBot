@@ -124,3 +124,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await query.edit_message_text(f"{target_name} назначен ответственным за {tool['name']}.")
         else:
             await query.edit_message_text("Не удалось назначить ответственного.")
+    pass
+async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_message = update.message.text
+    await update.message.reply_text(f"Вы отправили ID инструмента: {user_message}")
