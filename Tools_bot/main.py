@@ -19,6 +19,8 @@ from handlers.start import start_command, handle_registration
 from handlers.database import init_db, migrate_json_to_db, seed_foremen
 from dotenv import load_dotenv
 import os
+import asyncio
+from migrate_to_supabase import migrate_to_supabase
 
 # Инициализация бота
 load_dotenv()
@@ -31,6 +33,8 @@ async def on_startup(app):
     await migrate_json_to_db()
     await seed_foremen()  # <<< Добавляем этот вызов
     await app.bot.set_webhook(WEBHOOK_URL)
+
+asyncio.run(migrate_to_supabase())
     
 
 app = ApplicationBuilder().token(BOT_TOKEN).post_init(on_startup).build()
