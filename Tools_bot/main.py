@@ -4,11 +4,14 @@ from handlers.tools import handle_view_tool, handle_view_tool_by_index
 from handlers.menu import (
     find_tool_handler,
     all_tools_handler,
+    all_tools_prev,
+    all_tools_next,
     my_tools_handler,
+    my_tools_prev,
+    my_tools_next,
     add_tool_handler,
     export_all_handler,
-    admin_menu_handler,
-    show_main_menu
+    show_main_menu,
 )
 from handlers.start import start_command, handle_registration
 from handlers.tools import handle_tool_action, process_tool_id, handle_view_tool
