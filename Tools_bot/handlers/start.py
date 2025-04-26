@@ -71,12 +71,13 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     users = load_json(USERS_PATH)
 
+    # Если пользователь выбирает Admin и его ID совпадает с ADMIN_ID
     if name == "Admin" and user_id == ADMIN_ID:
         role = "Супервайзер"
         display_role = "супервайзер"
-        name = update.effective_user.full_name  # Можешь оставить "Admin" или заменить на своё реальное имя
+        name = update.effective_user.full_name  # Можешь оставить своё настоящее имя
     elif name == "Alexei Dohin":
-        role = "Супервайзер"
+        role = "Босс"
         display_role = "босс"
     elif name in ["Aleksei Panin", "Shamil Kurbanov", "Juri Teras"]:
         role = "Супервайзер"
@@ -85,12 +86,12 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         role = "Ответственный"
         display_role = "ответственный"
 
-    # Удаляем старую запись, если есть
+    # Удаляем старую запись (если вдруг есть) и записываем новую
     users = [u for u in users if u["id"] != user_id]
     users.append({"id": user_id, "name": name, "role": role})
     save_json(USERS_PATH, users)
 
-    # Обновляем foremen.json (если нужно)
+    # Обновляем foremen.json (если надо)
     foremen = load_json(FOREMEN_PATH)
     found = False
     for f in foremen:

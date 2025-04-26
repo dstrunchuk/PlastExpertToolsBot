@@ -198,7 +198,7 @@ async def show_multiple_tools(update: Update, tools: list):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Найдено несколько инструментов:", reply_markup=reply_markup)
 
-async def handle_view_tool(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_view_tool_by_index(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
@@ -206,19 +206,21 @@ async def handle_view_tool(update: Update, context: ContextTypes.DEFAULT_TYPE):
     users = load_json(USERS_PATH)
     tools = load_json(TOOLS_PATH)
 
+    try:
+        index = int(query.data.split(":")[1])
+        tool = tools[index]
+    except (IndexError, ValueError):
+        await query.edit_message_text("Инструмент не найден.")
+        return
+
     user = next((u for u in users if u["id"] == user_id), None)
     role = user.get("role", "Ответственный") if user else "Ответственный"
 
-    tool_id = query.data.split(":")[1]
-    tool = next((t for t in tools if str(t.get("id")) == tool_id), None)
+    text = create_tool_card_text(tool)
+    buttons = generate_action_buttons(tool, role)
+    reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
 
-    if tool:
-        text = create_tool_card_text(tool)
-        buttons = generate_action_buttons(tool, role)
-        reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
-        await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=reply_markup)
-    else:
-        await query.edit_message_text("Инструмент не найден.")
+    await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=reply_markup)
 
 def generate_action_buttons(tool: dict, role: str):
     buttons = []
