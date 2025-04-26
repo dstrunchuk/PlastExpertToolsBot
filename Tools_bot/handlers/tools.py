@@ -154,6 +154,12 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_input = update.message.text.strip()
     tools = load_json(TOOLS_PATH)
 
+    # Удаляем сообщение пользователя
+    try:
+        await update.message.delete()
+    except:
+        pass  # если вдруг сообщение уже удалено или нет прав, просто игнорируем ошибку
+
     # Поиск по точному ID
     found_tools = [tool for tool in tools if str(tool.get("id")) == user_input]
 
@@ -165,15 +171,13 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Инструмент не найден.")
         return
 
-    # Если найден один инструмент
     if len(found_tools) == 1:
         tool = found_tools[0]
         text = create_tool_card_text(tool)
-        buttons = generate_action_buttons(tool, role="Ответственный")  # Здесь можно уточнить роль если нужно
+        buttons = generate_action_buttons(tool, role="Ответственный")
         reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
-        await update.message.reply_text(text=text, parse_mode="Markdown", reply_markup=reply_markup)
+        await update.message.reply_text(text=text, reply_markup=reply_markup)
     else:
-        # Если найдено несколько инструментов
         message = "Найдено несколько инструментов:\n\n"
         keyboard = []
 
@@ -188,13 +192,9 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             keyboard.append([InlineKeyboardButton(f"Посмотреть {idx+1}", callback_data=callback_data)])
 
-        # Добавляем кнопку "Главное меню"
         keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
-        await update.message.reply_text(
-            message.strip(),
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
+        await update.message.reply_text(message.strip(), reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def show_tool_card(update: Update, tool: dict):
     name = tool.get("name", "Без названия")

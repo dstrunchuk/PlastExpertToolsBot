@@ -99,11 +99,7 @@ async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     buttons.append(InlineKeyboardButton("◀️ Главное меню", callback_data="main_back"))
 
-    await update.callback_query.edit_message_text(
-        message.strip(),
-        parse_mode="Markdown",
-        reply_markup=InlineKeyboardMarkup([buttons])
-    )
+    await update.callback_query.edit_message_text(message.strip(), reply_markup=InlineKeyboardMarkup([buttons]))
 async def my_tools_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["page_my_tools"] = max(context.user_data.get("page_my_tools", 0) - 1, 0)
     await my_tools_handler(update, context)
@@ -157,11 +153,8 @@ async def all_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     buttons.append(InlineKeyboardButton("◀️ Главное меню", callback_data="main_back"))
 
-    await update.callback_query.edit_message_text(
-        message.strip(),
-        parse_mode="Markdown",
-        reply_markup=InlineKeyboardMarkup([buttons])
-    )
+    await update.callback_query.edit_message_text(message.strip(), reply_markup=InlineKeyboardMarkup([buttons]))
+
 async def all_tools_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["page_all_tools"] = max(context.user_data.get("page_all_tools", 0) - 1, 0)
     await all_tools_handler(update, context)
