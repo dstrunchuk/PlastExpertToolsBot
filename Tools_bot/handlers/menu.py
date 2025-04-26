@@ -41,7 +41,9 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("🔨 Мои инструменты", callback_data="my_tools")],
             [InlineKeyboardButton("📋 Весь инструмент", callback_data="all_tools")],
             [InlineKeyboardButton("📥 Экспорт всего в Excel", callback_data="export_all")],
-            [InlineKeyboardButton("➕ Добавить инструмент", callback_data="add_tool")]
+            [InlineKeyboardButton("➕ Добавить инструмент", callback_data="add_tool")],
+            [InlineKeyboardButton("➕ Добавить ответственного", callback_data="add_foreman")],
+            [InlineKeyboardButton("➕ Добавить объект", callback_data="add_object")]
         ]
     else:
         buttons = [
@@ -228,3 +230,22 @@ async def export_all_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def admin_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
     await update.callback_query.edit_message_text("⚙️ Админ-панель в разработке.")
+
+
+async def add_foreman_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.callback_query.answer()
+    await update.callback_query.edit_message_text(
+        "Функция добавления ответственного скоро будет доступна.",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ])
+    )
+
+async def add_object_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.callback_query.answer()
+    await update.callback_query.edit_message_text(
+        "Функция добавления объекта скоро будет доступна.",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ])
+    )
