@@ -507,30 +507,10 @@ async def export_one_tool_history(update: Update, context: ContextTypes.DEFAULT_
         ])
     )   
 
-async def search_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    if "found_tools" not in context.user_data:
-        await query.edit_message_text("Ошибка поиска.", reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
-        ]))
-        return
-
-    if context.user_data["search_page"] > 0:
-        context.user_data["search_page"] -= 1
-
+async def search_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["search_page"] = context.user_data.get("search_page", 0) + 1
     await send_search_results(update, context)
 
-async def search_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    if "found_tools" not in context.user_data:
-        await query.edit_message_text("Ошибка поиска.", reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
-        ]))
-        return
-
-    context.user_data["search_page"] += 1
+async def search_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["search_page"] = max(context.user_data.get("search_page", 0) - 1, 0)
     await send_search_results(update, context)
