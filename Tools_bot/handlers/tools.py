@@ -238,7 +238,13 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             print(f"Не удалось удалить сообщение поиска: {e}")
 
-    # Поиск сначала по ID
+    # Удаляем сообщение пользователя
+    try:
+        await update.message.delete()
+    except Exception as e:
+        print(f"Не удалось удалить сообщение пользователя: {e}")
+
+    # Ищем сначала по ID
     for tool in tools:
         if str(tool.get("id")) == user_message:
             found_tools = [tool]
@@ -250,12 +256,6 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if tool.get("name") and user_message.lower() in tool["name"].lower():
                 found_tools.append(tool)
 
-    # Удаляем сообщение пользователя
-    try:
-        await update.message.delete()
-    except Exception as e:
-        print(f"Не удалось удалить сообщение поиска: {e}")
-
     if not found_tools:
         await update.effective_chat.send_message(
             "Инструмент не найден.",
@@ -265,10 +265,8 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Если найден один инструмент
     if len(found_tools) == 1:
         tool = found_tools[0]
-
         text = (
             f"Название: {tool.get('name', 'Без названия')}\n"
             f"ID: {tool.get('id', 'Нет ID')}\n"
