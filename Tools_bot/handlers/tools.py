@@ -259,8 +259,7 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Добавляем "История"
         buttons.insert(0, [InlineKeyboardButton("🗂 История", callback_data=f"export_one:{exact_tool.get('id')}")])
 
-        # Добавляем кнопку "Главное меню" вручную
-        buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
+    
 
         await update.effective_chat.send_message(
             text=text,
@@ -339,6 +338,14 @@ async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE
         text=message.strip(),
         reply_markup=InlineKeyboardMarkup(buttons)
     )
+
+async def search_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["search_page"] += 1
+    await send_search_results(update, context)
+
+async def search_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["search_page"] -= 1
+    await send_search_results(update, context)
         
 async def show_tool_card(update: Update, tool: dict):
     name = tool.get("name", "Без названия")
@@ -511,10 +518,3 @@ async def export_one_tool_history(update: Update, context: ContextTypes.DEFAULT_
         ])
     )   
 
-async def search_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["search_page"] += 1
-    await send_search_results(update, context)
-
-async def search_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["search_page"] -= 1
-    await send_search_results(update, context)
