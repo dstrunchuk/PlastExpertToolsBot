@@ -45,4 +45,10 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_tool_id)
 
 # Запуск бота
 print("Бот запущен.")
+from handlers.database import init_db
+
+async def on_startup(app):
+    await init_db()
+
+app.run_polling(on_startup=on_startup)
 app.run_polling()
