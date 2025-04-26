@@ -89,7 +89,55 @@ async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ВСЕ ИНСТРУМЕНТЫ
 async def all_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
-    await update.callback_query.edit_message_text("Показ всех инструментов пока не готов. Идём по шагам!")
+
+    tools = load_json(TOOLS_PATH)
+    if not tools:
+        await update.callback_query.edit_message_text("Инструменты не найдены.")
+        return
+
+    # Пагинация
+    page = context.user_data.get("page_all_tools", 0)
+    tools_per_page = 5
+    start = page * tools_per_page
+    end = start + tools_per_page
+    current_tools = tools[start:end]
+
+    if not current_tools:
+        await update.callback_query.edit_message_text("Инструменты не найдены на этой странице.")
+        return
+
+    message = "Все инструменты:\n\n"
+    for tool in current_tools:
+        name = tool.get("name", "Без названия")
+        tool_id = tool.get("id", "Без ID")
+        responsible = tool.get("responsible", "Никто")
+        object_name = tool.get("object", "Не указан")
+        message += (f"*Название:* {name}\n"
+                    f"*ID:* {tool_id}\n"
+                    f"*Объект:* {object_name}\n"
+                    f"*Ответственный:* {responsible}\n\n")
+
+    buttons = []
+
+    if start > 0:
+        buttons.append(InlineKeyboardButton("◀️ Назад", callback_data="all_tools_prev"))
+    if end < len(tools):
+        buttons.append(InlineKeyboardButton("Вперёд ▶️", callback_data="all_tools_next"))
+
+    buttons.append(InlineKeyboardButton("◀️ Главное меню", callback_data="main_back"))
+
+    await update.callback_query.edit_message_text(
+        message.strip(),
+        parse_mode="Markdown",
+        reply_markup=InlineKeyboardMarkup([buttons])
+    )
+async def all_tools_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["page_all_tools"] = max(context.user_data.get("page_all_tools", 0) - 1, 0)
+    await all_tools_handler(update, context)
+
+async def all_tools_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["page_all_tools"] = context.user_data.get("page_all_tools", 0) + 1
+    await all_tools_handler(update, context)
 
 # ДОБАВИТЬ ИНСТРУМЕНТ
 async def add_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):

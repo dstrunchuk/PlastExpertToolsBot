@@ -151,25 +151,50 @@ async def update_tool_card(query, tool: dict, user_id: int):
     await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=reply_markup)
 
 async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_message = update.message.text.strip()
+    user_input = update.message.text.strip()
     tools = load_json(TOOLS_PATH)
 
-    # Ищем точное совпадение по ID
-    tool_by_id = next((tool for tool in tools if str(tool.get("id")) == user_message), None)
-    
-    if tool_by_id:
-        await show_tool_card(update, tool_by_id)
+    # Поиск по точному ID
+    found_tools = [tool for tool in tools if str(tool.get("id")) == user_input]
+
+    # Если по ID не найдено, ищем по названию
+    if not found_tools:
+        found_tools = [tool for tool in tools if user_input.lower() in tool.get("name", "").lower()]
+
+    if not found_tools:
+        await update.message.reply_text("Инструмент не найден.")
         return
 
-    # Если по ID не нашли — ищем по названию
-    found_tools = [tool for tool in tools if user_message.lower() in tool.get("name", "").lower()]
-
-    if len(found_tools) == 0:
-        await update.message.reply_text("Инструмент не найден.")
-    elif len(found_tools) == 1:
-        await show_tool_card(update, found_tools[0])
+    # Если найден один инструмент
+    if len(found_tools) == 1:
+        tool = found_tools[0]
+        text = create_tool_card_text(tool)
+        buttons = generate_action_buttons(tool, role="Ответственный")  # Здесь можно уточнить роль если нужно
+        reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
+        await update.message.reply_text(text=text, parse_mode="Markdown", reply_markup=reply_markup)
     else:
-        await show_multiple_tools(update, found_tools)
+        # Если найдено несколько инструментов
+        message = "Найдено несколько инструментов:\n\n"
+        keyboard = []
+
+        for idx, tool in enumerate(found_tools):
+            tool_id = tool.get("id")
+            if not tool_id or str(tool_id).lower() == "nan":
+                callback_data = f"view_tool_by_index:{tools.index(tool)}"
+                message += f"{idx+1}. {tool.get('name', 'Без названия')} (без ID)\n\n"
+            else:
+                callback_data = f"view_tool:{tool_id}"
+                message += f"{idx+1}. {tool.get('name', 'Без названия')} (ID: {tool_id})\n\n"
+
+            keyboard.append([InlineKeyboardButton(f"Посмотреть {idx+1}", callback_data=callback_data)])
+
+        # Добавляем кнопку "Главное меню"
+        keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
+
+        await update.message.reply_text(
+            message.strip(),
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
 
 async def show_tool_card(update: Update, tool: dict):
     name = tool.get("name", "Без названия")
@@ -306,4 +331,6 @@ async def export_pending_to_excel(update: Update, context: ContextTypes.DEFAULT_
     
     # Сообщение после отправки
     await query.edit_message_text("Файл истории успешно создан и отправлен!")
+
+
 
