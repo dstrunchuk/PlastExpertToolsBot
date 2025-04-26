@@ -228,7 +228,7 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text.strip()
     tools = await get_all_tools()
 
-    # Удаляем сообщение "Введи ID или название инструмента", если есть
+    # Удаляем сообщение "Введи ID или название инструмента"
     find_prompt_id = context.user_data.pop("find_prompt_message_id", None)
     if find_prompt_id:
         try:
@@ -242,7 +242,7 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         pass
 
-    # Ищем точное совпадение по ID
+    # Ищем по ID
     exact_tool = next((tool for tool in tools if str(tool.get("id")) == user_message), None)
 
     if exact_tool:
@@ -253,8 +253,13 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Ответственный: {exact_tool.get('responsible', 'Никто')}"
         )
 
+        # генерируем только действия без добавления кнопки "Главное меню"
         buttons = generate_action_buttons(exact_tool, role)
+
+        # Добавляем "История"
         buttons.insert(0, [InlineKeyboardButton("🗂 История", callback_data=f"export_one:{exact_tool.get('id')}")])
+
+        # Добавляем кнопку "Главное меню" вручную
         buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
         await update.effective_chat.send_message(
@@ -263,7 +268,7 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Если по ID не нашли — ищем по названию
+    # Поиск по имени
     found_tools = [tool for tool in tools if tool.get("name") and user_message.lower() in tool["name"].lower()]
 
     if not found_tools:
@@ -275,10 +280,9 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Если найдено несколько инструментов по названию
+    # Если найдено несколько
     context.user_data["found_tools"] = found_tools
     context.user_data["search_page"] = 0
-
     await send_search_results(update, context)
 
 
@@ -508,9 +512,9 @@ async def export_one_tool_history(update: Update, context: ContextTypes.DEFAULT_
     )   
 
 async def search_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["search_page"] = context.user_data.get("search_page", 0) + 1
+    context.user_data["search_page"] += 1
     await send_search_results(update, context)
 
 async def search_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["search_page"] = max(context.user_data.get("search_page", 0) - 1, 0)
+    context.user_data["search_page"] -= 1
     await send_search_results(update, context)
