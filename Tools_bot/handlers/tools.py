@@ -235,26 +235,26 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if find_prompt_id:
         try:
             await update.effective_chat.delete_message(find_prompt_id)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Не удалось удалить сообщение поиска: {e}")
 
-    try:
-        await update.message.delete()
-    except Exception:
-        pass
-
-    # Сначала ищем по ID
+    # Ищем по ID
     for tool in tools:
-        tool_id = str(tool.get("id", "")).strip()
-        if tool_id and tool_id == user_message:
+        if str(tool.get("id")) == user_message:
             found_tools = [tool]
             break
 
-    # Если не нашли — ищем по названию
+    # Если не нашли по ID — ищем по названию
     if not found_tools:
         for tool in tools:
             if tool.get("name") and user_message.lower() in tool["name"].lower():
                 found_tools.append(tool)
+
+    # Удаляем сообщение пользователя
+    try:
+        await update.message.delete()
+    except Exception as e:
+        print(f"Не удалось удалить сообщение пользователя: {e}")
 
     if not found_tools:
         await update.effective_chat.send_message(
@@ -265,9 +265,10 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    if len(found_tools) == 1 and str(found_tools[0].get("id", "")).strip() == user_message:
-        # Найден один инструмент по ID
+    # Если найден один инструмент
+    if len(found_tools) == 1:
         tool = found_tools[0]
+
         text = (
             f"Название: {tool.get('name', 'Без названия')}\n"
             f"ID: {tool.get('id', 'Нет ID')}\n"
@@ -285,10 +286,12 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Если найдено несколько инструментов (по названию)
+    # Если найдено несколько инструментов
     context.user_data["found_tools"] = found_tools
     context.user_data["search_page"] = 0
-    await send_search_results(update, context)
+
+    # Показываем первую страницу результатов
+    await send_search_results_from_message(update, context)
 
 
 async def send_search_results_from_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
