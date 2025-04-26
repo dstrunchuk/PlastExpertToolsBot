@@ -238,23 +238,23 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception:
             pass
 
-    # Удаляем сообщение поиска пользователя
     try:
         await update.message.delete()
     except Exception:
         pass
 
-    # Ищем сначала по ID
+    # Сначала ищем по ID
     for tool in tools:
-        if str(tool.get("id")) == user_message:
+        tool_id = str(tool.get("id", "")).strip()
+        if tool_id and tool_id == user_message:
             found_tools = [tool]
             break
 
-    # Если по ID не нашли — ищем по названию
-    tool_id = str(tool.get("id", "")).strip()
-    if tool_id and tool_id == user_message:
-        found_tools = [tool]
-        break
+    # Если не нашли — ищем по названию
+    if not found_tools:
+        for tool in tools:
+            if tool.get("name") and user_message.lower() in tool["name"].lower():
+                found_tools.append(tool)
 
     if not found_tools:
         await update.effective_chat.send_message(
@@ -265,8 +265,8 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Найден один инструмент (поиск по ID)
-    if len(found_tools) == 1 and str(found_tools[0].get("id")) == user_message:
+    if len(found_tools) == 1 and str(found_tools[0].get("id", "")).strip() == user_message:
+        # Найден один инструмент по ID
         tool = found_tools[0]
         text = (
             f"Название: {tool.get('name', 'Без названия')}\n"
@@ -285,43 +285,23 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Найдено несколько инструментов (по названию)
+    # Если найдено несколько инструментов (по названию)
     context.user_data["found_tools"] = found_tools
     context.user_data["search_page"] = 0
     await send_search_results(update, context)
 
-    message = "Найденные инструменты:\n\n"
-    tools_per_page = 5
-    for idx, tool in enumerate(found_tools[:tools_per_page], start=1):
-        message += f"{idx}. {tool.get('name', 'Без названия')} (ID: {tool.get('id', 'Нет ID')})\n"
 
-    navigation_buttons = []
-    if len(found_tools) > tools_per_page:
-        navigation_buttons.append(InlineKeyboardButton("Вперёд ▶️", callback_data="search_next"))
-
-    keyboard = []
-    if navigation_buttons:
-        keyboard.append(navigation_buttons)
-    keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
-
-    await update.effective_chat.send_message(
-        text=message.strip(),
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
-
-
-async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.callback_query:
-        return
-
-    query = update.callback_query
-    await query.answer()
-
+async def send_search_results_from_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     found_tools = context.user_data.get("found_tools", [])
     page = context.user_data.get("search_page", 0)
 
-    if not found_tools:
-        await query.edit_message_text(
+    tools_per_page = 5
+    start = page * tools_per_page
+    end = start + tools_per_page
+    current_tools = found_tools[start:end]
+
+    if not current_tools:
+        await update.effective_chat.send_message(
             "Инструменты не найдены.",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
@@ -329,30 +309,51 @@ async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         return
 
-    tools_per_page = 5
-    start = page * tools_per_page
-    end = start + tools_per_page
-    current_tools = found_tools[start:end]
-
     message = "Найденные инструменты:\n\n"
-    for idx, tool in enumerate(current_tools, start=start+1):
+    for idx, tool in enumerate(current_tools, start=start + 1):
         message += f"{idx}. {tool.get('name', 'Без названия')} (ID: {tool.get('id', 'Нет ID')})\n"
 
-    navigation_buttons = []
+    buttons = []
     if start > 0:
-        navigation_buttons.append(InlineKeyboardButton("◀️ Назад", callback_data="search_prev"))
+        buttons.append(InlineKeyboardButton("◀️ Назад", callback_data="search_prev"))
     if end < len(found_tools):
-        navigation_buttons.append(InlineKeyboardButton("Вперёд ▶️", callback_data="search_next"))
+        buttons.append(InlineKeyboardButton("Вперёд ▶️", callback_data="search_next"))
 
-    keyboard = []
-    if navigation_buttons:
-        keyboard.append(navigation_buttons)
-    keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
+    menu_button = [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
 
-    await query.edit_message_text(
+    reply_markup = InlineKeyboardMarkup([buttons, menu_button] if buttons else [menu_button])
+
+    await update.effective_chat.send_message(
         text=message.strip(),
-        reply_markup=InlineKeyboardMarkup(keyboard)
+        reply_markup=reply_markup
     )
+        
+async def show_tool_card(update: Update, tool: dict):
+    name = tool.get("name", "Без названия")
+    tool_id = tool.get("id", "Нет ID")
+    obj = tool.get("object", "Не указан")
+    responsible = tool.get("responsible", "Никто")
+    status = "На складе" if obj.lower() == "ladu" else "На объекте"
+
+    text = (f"*Название:* {name}\n"
+            f"*ID:* {tool_id}\n"
+            f"*Объект:* {obj}\n"
+            f"*Ответственный:* {responsible}\n"
+            f"*Статус:* {status}")
+
+    await update.message.reply_text(text, parse_mode="Markdown")
+
+async def show_multiple_tools(update: Update, tools: list):
+    keyboard = []
+    for tool in tools:
+        button_text = f"{tool.get('name', 'Без названия')} (ID: {tool.get('id', 'нет')})"
+        callback_data = f"view_tool:{tool.get('id')}"
+        keyboard.append([[
+            InlineKeyboardButton(button_text, callback_data=callback_data)
+        ]])
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Найдено несколько инструментов:", reply_markup=reply_markup)
 
 async def handle_view_tool(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
