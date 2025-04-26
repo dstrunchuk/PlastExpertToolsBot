@@ -49,18 +49,19 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer()
     user_id = query.from_user.id
 
-    users = await get_all_users()
-    foremen = await get_all_foremen()
-    tools = await get_all_tools()
+    user = await get_user_by_id(user_id)
+    if not user:
+        await query.edit_message_text("Пользователь не найден.", reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ]))
+        return
 
     data = query.data
     parts = data.split(":")
     action = parts[0]
     tool_id = parts[1]
 
-    tool = next((t for t in tools if str(t["id"]) == tool_id), None)
-    user = next((u for u in users if u["id"] == user_id), None)
-
+    tool = await get_tool_by_id(tool_id)
     if not tool:
         await query.edit_message_text("Инструмент не найден.", reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
@@ -68,22 +69,21 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
 
     if action == "take":
-        if user:
-            tool["responsible"] = user["name"]
-            tool["responsible_id"] = user_id
-            await update_tool(tool)
-            await log_action({
-                "timestamp": datetime.now().isoformat(),
-                "user_id": user_id,
-                "action": "Стал ответственным",
-                "tool_id": tool["id"],
-                "tool_name": tool["name"],
-                "object": tool["object"],
-                "responsible": user["name"]
-            })
-            await query.edit_message_text(f"Вы стали ответственным за {tool['name']}.", reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
-            ]))
+        tool["responsible"] = user["name"]
+        tool["responsible_id"] = user_id
+        await update_tool(tool)
+        await log_action({
+            "timestamp": datetime.now().isoformat(),
+            "user_id": user_id,
+            "action": "Стал ответственным",
+            "tool_id": tool["id"],
+            "tool_name": tool["name"],
+            "object": tool["object"],
+            "responsible": user["name"]
+        })
+        await query.edit_message_text(f"Вы стали ответственным за {tool['name']}.", reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ]))
 
     elif action == "store":
         tool["responsible"] = None
@@ -106,95 +106,97 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif action == "request":
         responsible_id = tool.get("responsible_id")
         if responsible_id:
-            responsible_user = next((u for u in users if u["id"] == responsible_id), None)
+            responsible_user = await get_user_by_id(responsible_id)
             if responsible_user:
                 try:
                     await context.bot.send_message(
                         chat_id=responsible_id,
-                        text=f"🔔 Пользователь {user['name']} запрашивает инструмент '{tool['name']}' (ID: {tool.get('id', 'Нет ID')})."
+                        text=f"🔔 Пользователь {user['name']} запрашивает инструмент: {tool['name']} (ID: {tool.get('id', 'нет ID')})"
                     )
                     await query.edit_message_text(f"Запрос отправлен {responsible_user['name']}.", reply_markup=InlineKeyboardMarkup([
                         [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
                     ]))
                 except Exception as e:
                     print(f"Ошибка отправки запроса: {e}")
-                    await query.edit_message_text(f"Не удалось отправить запрос.", reply_markup=InlineKeyboardMarkup([
+                    await query.edit_message_text("Не удалось отправить запрос.", reply_markup=InlineKeyboardMarkup([
                         [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
                     ]))
+            else:
+                await query.edit_message_text("Ответственный пользователь не найден.", reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+                ]))
         else:
-            await query.edit_message_text("Инструмент не имеет текущего ответственного.", reply_markup=InlineKeyboardMarkup([
+            await query.edit_message_text("У инструмента нет ответственного.", reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
             ]))
 
     elif action == "transfer":
+        foremen = await get_all_foremen()
         buttons = []
-        added_names = set()
+        seen = set()
         for person in foremen:
-            if person["role"] == "Ответственный" and person["name"] not in added_names:
-                buttons.append([
-                    InlineKeyboardButton(person["name"], callback_data=f"confirm_transfer:{tool_id}:{person['id']}")
-                ])
-                added_names.add(person["name"])
+            if person["name"] not in seen:
+                buttons.append([InlineKeyboardButton(person["name"], callback_data=f"confirm_transfer:{tool_id}:{person['id']}")])
+                seen.add(person["name"])
         buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
         await query.edit_message_text("Кому передать инструмент?", reply_markup=InlineKeyboardMarkup(buttons))
 
     elif action == "assign":
+        foremen = await get_all_foremen()
         buttons = []
-        added_names = set()
+        seen = set()
         for person in foremen:
-            if person["name"] not in added_names:
-                buttons.append([
-                    InlineKeyboardButton(person["name"], callback_data=f"confirm_assign:{tool_id}:{person['id']}")
-                ])
-                added_names.add(person["name"])
+            if person["name"] not in seen:
+                buttons.append([InlineKeyboardButton(person["name"], callback_data=f"confirm_assign:{tool_id}:{person['id']}")])
+                seen.add(person["name"])
         buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
         await query.edit_message_text("Кого назначить ответственным?", reply_markup=InlineKeyboardMarkup(buttons))
 
     elif action == "confirm_transfer":
         _, tool_id, target_id = parts
-        new_resp = next((f for f in foremen if str(f["id"]) == target_id), None)
-        if new_resp:
-            tool["responsible"] = new_resp["name"]
-            tool["responsible_id"] = new_resp["id"]
+        new_user = await get_user_by_id(int(target_id))
+        if new_user:
+            tool["responsible"] = new_user["name"]
+            tool["responsible_id"] = new_user["id"]
             await update_tool(tool)
             await log_action({
                 "timestamp": datetime.now().isoformat(),
                 "user_id": user_id,
-                "action": f"Передал → {new_resp['name']}",
+                "action": f"Передал инструмент → {new_user['name']}",
                 "tool_id": tool["id"],
                 "tool_name": tool["name"],
                 "object": tool["object"],
-                "responsible": new_resp["name"]
+                "responsible": new_user["name"]
             })
-            await query.edit_message_text(f"Инструмент {tool['name']} передан {new_resp['name']}.", reply_markup=InlineKeyboardMarkup([
+            await query.edit_message_text(f"Инструмент {tool['name']} передан {new_user['name']}.", reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
             ]))
         else:
-            await query.edit_message_text("Ошибка передачи инструмента.", reply_markup=InlineKeyboardMarkup([
+            await query.edit_message_text("Не удалось передать инструмент.", reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
             ]))
 
     elif action == "confirm_assign":
         _, tool_id, target_id = parts
-        new_resp = next((f for f in foremen if str(f["id"]) == target_id), None)
-        if new_resp:
-            tool["responsible"] = new_resp["name"]
-            tool["responsible_id"] = new_resp["id"]
+        new_user = await get_user_by_id(int(target_id))
+        if new_user:
+            tool["responsible"] = new_user["name"]
+            tool["responsible_id"] = new_user["id"]
             await update_tool(tool)
             await log_action({
                 "timestamp": datetime.now().isoformat(),
                 "user_id": user_id,
-                "action": f"Назначил ответственным {new_resp['name']}",
+                "action": f"Назначил {new_user['name']} ответственным",
                 "tool_id": tool["id"],
                 "tool_name": tool["name"],
                 "object": tool["object"],
-                "responsible": new_resp["name"]
+                "responsible": new_user["name"]
             })
-            await query.edit_message_text(f"{new_resp['name']} назначен ответственным за {tool['name']}.", reply_markup=InlineKeyboardMarkup([
+            await query.edit_message_text(f"{new_user['name']} назначен ответственным за {tool['name']}.", reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
             ]))
         else:
-            await query.edit_message_text("Ошибка назначения ответственного.", reply_markup=InlineKeyboardMarkup([
+            await query.edit_message_text("Не удалось назначить.", reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
             ]))
 
@@ -399,27 +401,19 @@ def generate_action_buttons(tool: dict, role: str):
     buttons = []
     responsible_id = tool.get("responsible_id")
 
-    # Ответственный или Админ
     if role in ["Ответственный", "Админ"]:
         if not responsible_id:
             buttons.append([InlineKeyboardButton("✅ Стать ответственным", callback_data=f"take:{tool['id']}")])
-        elif responsible_id == tool.get("responsible_id"):
-            buttons.append([
-                InlineKeyboardButton("📤 Передать", callback_data=f"transfer:{tool['id']}"),
-                InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool['id']}")
-            ])
+        elif responsible_id and responsible_id == tool.get("responsible_id"):
+            buttons.append([InlineKeyboardButton("📤 Передать", callback_data=f"transfer:{tool['id']}")])
+            buttons.append([InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool['id']}")])
         else:
             buttons.append([InlineKeyboardButton("📥 Запросить передачу", callback_data=f"request:{tool['id']}")])
 
-    # Супервайзер или Босс
     if role in ["Супервайзер", "Босс"]:
-        buttons.append([
-            InlineKeyboardButton("👤 Назначить ответственного", callback_data=f"assign:{tool['id']}"),
-            InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool['id']}")
-        ])
-        buttons.append([InlineKeyboardButton("🗂 История", callback_data=f"export:{tool['id']}")])
+        buttons.append([InlineKeyboardButton("👤 Назначить ответственного", callback_data=f"assign:{tool['id']}")])
+        buttons.append([InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool['id']}")])
 
-    # Всегда кнопка "Главное меню"
     buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
     return buttons
