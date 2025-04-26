@@ -4,9 +4,13 @@ import os
 import json
 from handlers.tools import load_json, TOOLS_PATH, export_pending_to_excel
 from handlers.database import get_all_tools
+import pandas as pd
+import aiosqlite
+from telegram import InputFile
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 USERS_PATH = os.path.join(DATA_DIR, "users.json")
+DB_PATH = "database.db"
 
 # Функция отображения главного меню
 def load_json(filename):
@@ -172,9 +176,34 @@ async def add_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.edit_message_text("Добавление инструмента скоро будет доступно.")
 
 # ЭКСПОРТ ВСЕГО
-async def export_all_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def export_all_handler(update, context):
     await update.callback_query.answer()
-    await update.callback_query.edit_message_text("Экспорт в Excel скоро будет доступен.")
+
+    # Загружаем все записи из pending
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("""
+            SELECT timestamp, user_id, action, tool_id, tool_name, object, responsible
+            FROM pending
+            ORDER BY timestamp DESC
+        """)
+        rows = await cursor.fetchall()
+
+    if not rows:
+        await update.callback_query.edit_message_text("История пока пустая, нечего экспортировать.")
+        return
+
+    # Создаём DataFrame
+    df = pd.DataFrame(rows, columns=["Время", "ID пользователя", "Действие", "ID инструмента", "Название инструмента", "Объект", "Ответственный"])
+
+    # Сохраняем в файл
+    filename = "pending_export.xlsx"
+    df.to_excel(filename, index=False)
+
+    # Отправляем файл
+    await update.callback_query.message.reply_document(InputFile(filename), caption="Экспорт истории действий:")
+
+    # Сообщение о возврате в меню
+    await update.callback_query.edit_message_text("Экспорт завершён. Можете продолжать работу.")
 
 # АДМИН-МЕНЮ
 async def admin_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):

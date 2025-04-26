@@ -1,9 +1,9 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputFile
 from telegram.ext import ContextTypes
 import os, json
 import pandas as pd
 from datetime import datetime
-from handlers.database import get_tool_by_id, update_tool, log_action, get_all_foremen, get_all_users, get_all_tools
+from handlers.database import get_tool_by_id, update_tool, log_action, get_all_foremen, get_all_users, get_all_tools, get_tool_history
 import re
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -142,6 +142,21 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     elif action == "export":
         await export_pending_to_excel(update, context)
+
+    elif action == "export":
+        history = await get_tool_history(tool_id)
+
+        if not history:
+            await query.edit_message_text("История для этого инструмента пуста.")
+            return
+
+        df = pd.DataFrame(history)
+        filename = f"history_tool_{tool_id}.xlsx"
+        df.to_excel(filename, index=False)
+
+        await query.message.reply_document(InputFile(filename), caption=f"История инструмента ID {tool_id}")
+
+        await query.edit_message_text(f"Экспорт истории инструмента ID {tool_id} завершён.")
 
     else:
         await query.edit_message_text("Неизвестное действие.")
@@ -287,24 +302,27 @@ def generate_action_buttons(tool: dict, role: str):
     buttons = []
     responsible_id = tool.get("responsible_id")
 
-    # Ответственный
-    if role == "Ответственный" or role == "Админ":
-        if responsible_id is None:
+    # Ответственный или Админ
+    if role in ["Ответственный", "Админ"]:
+        if not responsible_id:
             buttons.append([InlineKeyboardButton("✅ Стать ответственным", callback_data=f"take:{tool['id']}")])
         elif responsible_id == tool.get("responsible_id"):
-            buttons.append([InlineKeyboardButton("📤 Передать", callback_data=f"transfer:{tool['id']}")])
-            buttons.append([InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool['id']}")])
-        elif responsible_id is not None:
-            # Только если реально есть ответственный (а не пустота)
+            buttons.append([
+                InlineKeyboardButton("📤 Передать", callback_data=f"transfer:{tool['id']}"),
+                InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool['id']}")
+            ])
+        else:
             buttons.append([InlineKeyboardButton("📥 Запросить передачу", callback_data=f"request:{tool['id']}")])
 
-    # Супервайзер / Босс
+    # Супервайзер или Босс
     if role in ["Супервайзер", "Босс"]:
-        buttons.append([InlineKeyboardButton("👤 Назначить ответственного", callback_data=f"assign:{tool['id']}")])
-        buttons.append([InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool['id']}")])
+        buttons.append([
+            InlineKeyboardButton("👤 Назначить ответственного", callback_data=f"assign:{tool['id']}"),
+            InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool['id']}")
+        ])
         buttons.append([InlineKeyboardButton("🗂 История", callback_data=f"export:{tool['id']}")])
 
-    # Назад в главное меню
+    # Всегда кнопка "Главное меню"
     buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
     return buttons
@@ -346,5 +364,5 @@ async def export_pending_to_excel(update: Update, context: ContextTypes.DEFAULT_
     # Сообщение после отправки
     await query.edit_message_text("Файл истории успешно создан и отправлен!")
 
-
+    
 
