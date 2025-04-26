@@ -32,7 +32,7 @@ app.add_handler(CallbackQueryHandler(show_main_menu, pattern="^main_back$"))
 
 app.add_handler(CallbackQueryHandler(handle_view_tool, pattern="^view_tool:"))
 app.add_handler(CallbackQueryHandler(handle_view_tool_by_index, pattern="^view_tool_by_index:"))
-app.add_handler(CallbackQueryHandler(handle_registration, pattern="^(register:|skip_admin)$"))
+app.add_handler(CallbackQueryHandler(handle_registration, pattern="^register:"))
 app.add_handler(CallbackQueryHandler(handle_tool_action, pattern="^(take|store|request|transfer|assign|export|confirm_transfer|confirm_assign):"))
 
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_tool_id))
