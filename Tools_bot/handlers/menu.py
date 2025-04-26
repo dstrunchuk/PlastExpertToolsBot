@@ -8,6 +8,12 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 USERS_PATH = os.path.join(DATA_DIR, "users.json")
 
 # Функция отображения главного меню
+def load_json(filename):
+    if not os.path.exists(filename):
+        return []
+    with open(filename, "r", encoding="utf-8") as f:
+        return json.load(f)
+
 async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     users = load_json(USERS_PATH)
@@ -31,6 +37,7 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if role in ["Супервайзер", "Шеф", "Босс"]:
         buttons = [
             [InlineKeyboardButton("🔍 Найти инструмент", callback_data="find_tool")],
+            [InlineKeyboardButton("🔨 Мои инструменты", callback_data="my_tools")],
             [InlineKeyboardButton("📋 Весь инструмент", callback_data="all_tools")],
             [InlineKeyboardButton("📥 Экспорт всего в Excel", callback_data="export_all")],
             [InlineKeyboardButton("➕ Добавить инструмент", callback_data="add_tool")]
@@ -48,35 +55,6 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(menu_text, reply_markup=InlineKeyboardMarkup(buttons))
     elif update.callback_query:
         await update.callback_query.edit_message_text(menu_text, reply_markup=InlineKeyboardMarkup(buttons))
-
-# ==================== ОБРАБОТЧИКИ КНОПОК ====================
-
-# Найти инструмент
-async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.callback_query.answer()
-    await update.callback_query.edit_message_text("Введи ID или название инструмента:")
-
-# Весь инструмент
-async def all_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.callback_query.answer()
-    tools = load_json(TOOLS_PATH)
-    if not tools:
-        await update.callback_query.edit_message_text("Инструменты не найдены.")
-        return
-
-    keyboard = []
-    for idx, tool in enumerate(tools):
-        tool_id = tool.get("id")
-        if not tool_id or str(tool_id).lower() == "nan":
-            callback_data = f"view_tool_by_index:{idx}"
-            button_text = f"{tool.get('name', 'Без названия')} (без ID)"
-        else:
-            callback_data = f"view_tool:{tool_id}"
-            button_text = f"{tool.get('name', 'Без названия')} (ID: {tool_id})"
-
-        keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
-
-    await update.callback_query.edit_message_text("Все инструменты:", reply_markup=InlineKeyboardMarkup(keyboard))
 
 # Мои инструменты
 async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
