@@ -292,34 +292,52 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_search_results(update, context)
 
 async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
     found_tools = context.user_data.get("found_tools", [])
     page = context.user_data.get("search_page", 0)
-    per_page = 5
 
-    start = page * per_page
-    end = start + per_page
+    if not found_tools:
+        await query.edit_message_text(
+            "Инструменты не найдены.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ])
+        )
+        return
+
+    tools_per_page = 5
+    start = page * tools_per_page
+    end = start + tools_per_page
     current_tools = found_tools[start:end]
 
     if not current_tools:
-        await update.effective_chat.send_message("Инструменты не найдены на этой странице.")
+        await query.edit_message_text(
+            "На этой странице нет инструментов.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ])
+        )
         return
 
-    # Формируем красивый список
-    message = "Найдено несколько инструментов:\n\n"
-    for idx, tool in enumerate(current_tools, start=start + 1):
+    message = "Найденные инструменты:\n\n"
+    keyboard = []
+
+    for idx, tool in enumerate(current_tools, start=start+1):
         message += f"{idx}. {tool.get('name', 'Без названия')} (ID: {tool.get('id', 'Нет ID')})\n"
 
-    # Кнопки навигации
-    nav_buttons = []
-    if page > 0:
-        nav_buttons.append(InlineKeyboardButton("◀️ Назад", callback_data="search_prev"))
-    if end < len(found_tools):
-        nav_buttons.append(InlineKeyboardButton("Вперёд ▶️", callback_data="search_next"))
-    nav_buttons.append(InlineKeyboardButton("◀️ Главное меню", callback_data="main_back"))
+    buttons = []
 
-    await update.effective_chat.send_message(
-        text=message.strip(),
-        reply_markup=InlineKeyboardMarkup([nav_buttons])
+    if start > 0:
+        buttons.append(InlineKeyboardButton("◀️ Назад", callback_data="search_prev"))
+    if end < len(found_tools):
+        buttons.append(InlineKeyboardButton("Вперёд ▶️", callback_data="search_next"))
+
+    # Главное меню всегда
+    menu_button = [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+
+    await query.edit_message_text(
+        text=message,
+        reply_markup=InlineKeyboardMarkup([buttons, menu_button] if buttons else [menu_button])
     )
         
 async def show_tool_card(update: Update, tool: dict):
@@ -494,20 +512,9 @@ async def export_one_tool_history(update: Update, context: ContextTypes.DEFAULT_
     )   
 
 async def search_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    page = context.user_data.get("search_page", 0)
-    if page > 0:
-        context.user_data["search_page"] = page - 1
-
+    context.user_data["search_page"] = max(context.user_data.get("search_page", 0) - 1, 0)
     await send_search_results(update, context)
 
 async def search_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    page = context.user_data.get("search_page", 0)
-    context.user_data["search_page"] = page + 1
-
+    context.user_data["search_page"] = context.user_data.get("search_page", 0) + 1
     await send_search_results(update, context)

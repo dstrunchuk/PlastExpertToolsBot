@@ -1,6 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
-from handlers.tools import handle_view_tool, handle_view_tool_by_index, handle_tool_action, process_tool_id, export_one_tool_history
+from handlers.tools import handle_view_tool, handle_view_tool_by_index, handle_tool_action, process_tool_id, export_one_tool_history, search_prev, search_next
 from handlers.menu import (
     find_tool_handler,
     all_tools_handler,
@@ -39,6 +39,8 @@ app = ApplicationBuilder().token(BOT_TOKEN).post_init(on_startup).build()
 app.add_handler(CommandHandler("start", start_command))
 app.add_handler(CallbackQueryHandler(find_tool_handler, pattern="^find_tool$"))
 app.add_handler(CallbackQueryHandler(all_tools_handler, pattern="^all_tools$"))
+app.add_handler(CallbackQueryHandler(search_prev, pattern="^search_prev$"))
+app.add_handler(CallbackQueryHandler(search_next, pattern="^search_next$"))
 app.add_handler(CallbackQueryHandler(all_tools_prev, pattern="^all_tools_prev$"))
 app.add_handler(CallbackQueryHandler(all_tools_next, pattern="^all_tools_next$"))
 app.add_handler(CallbackQueryHandler(my_tools_prev, pattern="^my_tools_prev$"))
