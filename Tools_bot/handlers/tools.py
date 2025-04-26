@@ -173,40 +173,58 @@ async def update_tool_card(query, tool: dict, user_id: int):
     await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=reply_markup)
 
 async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message:
+        return
+
+    user_id = update.effective_user.id
+    user = await get_user_by_id(user_id)
+    role = user.get("role", "Ответственный") if user else "Ответственный"
+
     user_message = update.message.text.strip()
     tools = await get_all_tools()
 
     found_tools = []
 
-    # Сначала ищем по ID (точное совпадение)
+    # Ищем по ID
     for tool in tools:
         if str(tool.get("id")) == user_message:
             found_tools = [tool]
             break
 
-    # Потом ищем по названию (частичное совпадение)
+    # Ищем по названию
     if not found_tools:
         for tool in tools:
             if tool.get("name") and user_message.lower() in tool["name"].lower():
                 found_tools.append(tool)
 
+    # Удаляем сообщение пользователя сразу
+    try:
+        await update.message.delete()
+    except Exception as e:
+        print(f"Не удалось удалить сообщение поиска: {e}")
+
     if not found_tools:
-        await update.message.reply_text("Инструмент не найден.")
+        await update.effective_chat.send_message(
+            "Инструмент не найден.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ])
+        )
         return
 
     if len(found_tools) == 1:
         tool = found_tools[0]
-        text = (
-            f"Название: {tool.get('name', 'Без названия')}\n"
-            f"ID: {tool.get('id', 'Нет ID')}\n"
-            f"Объект: {tool.get('object', 'Не указан')}\n"
-            f"Ответственный: {tool.get('responsible', 'Никто')}"
-        )
-        await update.message.reply_text(
+        text = create_tool_card_text(tool)
+
+        # Генерация кнопок действий
+        buttons = generate_action_buttons(tool, role)
+
+        # Плюс кнопка История
+        buttons.insert(0, [InlineKeyboardButton("🗂 История", callback_data=f"export_one:{tool.get('id')}")])
+
+        await update.effective_chat.send_message(
             text=text,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
-            ])
+            reply_markup=InlineKeyboardMarkup(buttons)
         )
     else:
         message = "Найдено несколько инструментов:\n\n"
@@ -216,16 +234,13 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
             keyboard.append([
                 InlineKeyboardButton(f"{tool.get('name', 'Без названия')}", callback_data=f"view_tool:{tool.get('id')}")
             ])
-
+        
         keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
-        if update.message:
-            try:
-                await update.message.delete()
-            except Exception as e:
-                print(f"Не удалось удалить сообщение поиска: {e}")
-
-    await update.message.reply_text(text=text, reply_markup=reply_markup)
+        await update.effective_chat.send_message(
+            text=message,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
         
 async def show_tool_card(update: Update, tool: dict):
     name = tool.get("name", "Без названия")
