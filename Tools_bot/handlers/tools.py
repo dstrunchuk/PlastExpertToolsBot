@@ -219,10 +219,13 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
-        await update.message.reply_text(
-            text=message,
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
+        if update.message:
+            try:
+                await update.message.delete()
+            except Exception as e:
+                print(f"Не удалось удалить сообщение поиска: {e}")
+
+    await update.message.reply_text(text=text, reply_markup=reply_markup)
         
 async def show_tool_card(update: Update, tool: dict):
     name = tool.get("name", "Без названия")
