@@ -222,19 +222,19 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     found_tools = []
 
-    # Ищем по ID
+    # Ищем сначала по ID
     for tool in tools:
         if str(tool.get("id")) == user_message:
             found_tools = [tool]
             break
 
-    # Ищем по названию
+    # Потом по названию (если по ID не нашли)
     if not found_tools:
         for tool in tools:
             if tool.get("name") and user_message.lower() in tool["name"].lower():
                 found_tools.append(tool)
 
-    # Удаляем сообщение пользователя сразу
+    # Удаляем сообщение поиска
     try:
         await update.message.delete()
     except Exception as e:
@@ -251,27 +251,38 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if len(found_tools) == 1:
         tool = found_tools[0]
-        text = create_tool_card_text(tool)
 
-        # Генерация кнопок действий
+        # Готовим текст карточки
+        text = (
+            f"Название: {tool.get('name', 'Без названия')}\n"
+            f"ID: {tool.get('id', 'Нет ID')}\n"
+            f"Объект: {tool.get('object', 'Не указан')}\n"
+            f"Ответственный: {tool.get('responsible', 'Никто')}"
+        )
+
+        # Генерируем кнопки действий
         buttons = generate_action_buttons(tool, role)
 
-        # В конец добавляем кнопку История
-        buttons.append([InlineKeyboardButton("🗂 История", callback_data=f"export_one:{tool.get('id')}")])
-        buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
+        # Вставляем кнопку "История" отдельно в начало
+        buttons.insert(0, [InlineKeyboardButton("🗂 История", callback_data=f"export_one:{tool.get('id')}")])
 
         await update.effective_chat.send_message(
             text=text,
             reply_markup=InlineKeyboardMarkup(buttons)
         )
+
     else:
+        # Найдено несколько
         message = "Найдено несколько инструментов:\n\n"
         keyboard = []
+
         for idx, tool in enumerate(found_tools):
+            message += f"{idx+1}. {tool.get('name', 'Без названия')} (ID: {tool.get('id', 'Нет ID')})\n"
             keyboard.append([
                 InlineKeyboardButton(f"{tool.get('name', 'Без названия')}", callback_data=f"view_tool:{tool.get('id')}")
             ])
 
+        # Добавляем кнопку "Главное меню"
         keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
         await update.effective_chat.send_message(
