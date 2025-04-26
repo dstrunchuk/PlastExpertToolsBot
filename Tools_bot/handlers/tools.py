@@ -49,35 +49,59 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer()
     user_id = query.from_user.id
 
+    users = await get_all_users()
+    foremen = await get_all_foremen()
+    tools = await get_all_tools()
+
     data = query.data
     parts = data.split(":")
     action = parts[0]
     tool_id = parts[1]
 
-    tool = await get_tool_by_id(tool_id)
-    if not tool:
-        await query.edit_message_text("Инструмент не найден.")
-        return
-
-    users = await get_all_users()
-    foremen = await get_all_foremen()
+    tool = next((t for t in tools if str(t["id"]) == tool_id), None)
     user = next((u for u in users if u["id"] == user_id), None)
+
+    if not tool:
+        await query.edit_message_text("Инструмент не найден.", reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ]))
+        return
 
     if action == "take":
         if user:
             tool["responsible"] = user["name"]
             tool["responsible_id"] = user_id
-            await update_tool(tool_id, tool)
-            await log_action(user_id, "Стал ответственным", tool)
-            await send_success_message(query, f"Вы стали ответственным за {tool['name']}.")
+            await update_tool(tool)
+            await log_action({
+                "timestamp": datetime.now().isoformat(),
+                "user_id": user_id,
+                "action": "Стал ответственным",
+                "tool_id": tool["id"],
+                "tool_name": tool["name"],
+                "object": tool["object"],
+                "responsible": user["name"]
+            })
+            await query.edit_message_text(f"Вы стали ответственным за {tool['name']}.", reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ]))
 
     elif action == "store":
         tool["responsible"] = None
         tool["responsible_id"] = None
         tool["object"] = "Ladu"
-        await update_tool(tool_id, tool)
-        await log_action(user_id, "Оставил на складе", tool)
-        await send_success_message(query, f"Инструмент {tool['name']} возвращен на склад.")
+        await update_tool(tool)
+        await log_action({
+            "timestamp": datetime.now().isoformat(),
+            "user_id": user_id,
+            "action": "Оставил на складе",
+            "tool_id": tool["id"],
+            "tool_name": tool["name"],
+            "object": tool["object"],
+            "responsible": "Никто"
+        })
+        await query.edit_message_text(f"Инструмент {tool['name']} оставлен на складе.", reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ]))
 
     elif action == "request":
         responsible_id = tool.get("responsible_id")
@@ -87,19 +111,23 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 try:
                     await context.bot.send_message(
                         chat_id=responsible_id,
-                        text=f"🔔 Пользователь {user['name']} хочет получить у вас инструмент *{tool['name']}* (ID: {tool.get('id', 'Без ID')}).",
-                        parse_mode="Markdown"
+                        text=f"🔔 Пользователь {user['name']} запрашивает инструмент '{tool['name']}' (ID: {tool.get('id', 'Нет ID')})."
                     )
-                    await query.edit_message_text(f"Запрос на передачу инструмента отправлен {responsible_user['name']}.")
+                    await query.edit_message_text(f"Запрос отправлен {responsible_user['name']}.", reply_markup=InlineKeyboardMarkup([
+                        [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+                    ]))
                 except Exception as e:
-                    print(f"Ошибка при отправке запроса: {e}")
-                    await query.edit_message_text(f"Не удалось отправить запрос ответственному ({responsible_user['name']}).")
-            else:
-                await query.edit_message_text("Ответственный пользователь не найден.")
+                    print(f"Ошибка отправки запроса: {e}")
+                    await query.edit_message_text(f"Не удалось отправить запрос.", reply_markup=InlineKeyboardMarkup([
+                        [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+                    ]))
         else:
-            await query.edit_message_text("Инструмент не имеет текущего ответственного.")
+            await query.edit_message_text("Инструмент не имеет текущего ответственного.", reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ]))
 
     elif action == "transfer":
+        # Показать список ответственных
         buttons = []
         for person in foremen:
             if person["role"] == "Ответственный":
@@ -109,6 +137,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.edit_message_text("Кому передать инструмент?", reply_markup=InlineKeyboardMarkup(buttons))
 
     elif action == "assign":
+        # Показать список всех прорабов
         buttons = []
         for person in foremen:
             buttons.append([
@@ -122,11 +151,23 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if new_resp:
             tool["responsible"] = new_resp["name"]
             tool["responsible_id"] = new_resp["id"]
-            await update_tool(tool_id, tool)
-            await log_action(user_id, f"Передал {tool['name']} → {new_resp['name']}", tool)
-            await send_success_message(query, f"Инструмент {tool['name']} передан {new_resp['name']}.")
+            await update_tool(tool)
+            await log_action({
+                "timestamp": datetime.now().isoformat(),
+                "user_id": user_id,
+                "action": f"Передал → {new_resp['name']}",
+                "tool_id": tool["id"],
+                "tool_name": tool["name"],
+                "object": tool["object"],
+                "responsible": new_resp["name"]
+            })
+            await query.edit_message_text(f"Инструмент {tool['name']} передан {new_resp['name']}.", reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ]))
         else:
-            await query.edit_message_text("Не удалось передать инструмент.")
+            await query.edit_message_text("Ошибка передачи инструмента.", reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ]))
 
     elif action == "confirm_assign":
         _, tool_id, target_id = parts
@@ -134,32 +175,28 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if new_resp:
             tool["responsible"] = new_resp["name"]
             tool["responsible_id"] = new_resp["id"]
-            await update_tool(tool_id, tool)
-            await log_action(user_id, f"Назначил {new_resp['name']} ответственным", tool)
-            await send_success_message(query, f"{new_resp['name']} назначен ответственным за {tool['name']}.")
+            await update_tool(tool)
+            await log_action({
+                "timestamp": datetime.now().isoformat(),
+                "user_id": user_id,
+                "action": f"Назначил ответственным {new_resp['name']}",
+                "tool_id": tool["id"],
+                "tool_name": tool["name"],
+                "object": tool["object"],
+                "responsible": new_resp["name"]
+            })
+            await query.edit_message_text(f"{new_resp['name']} назначен ответственным за {tool['name']}.", reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ]))
         else:
-            await query.edit_message_text("Не удалось назначить ответственного.")
-
-    elif action == "export":
-        await export_pending_to_excel(update, context)
-
-    elif action == "export":
-        history = await get_tool_history(tool_id)
-
-        if not history:
-            await query.edit_message_text("История для этого инструмента пуста.")
-            return
-
-        df = pd.DataFrame(history)
-        filename = f"history_tool_{tool_id}.xlsx"
-        df.to_excel(filename, index=False)
-
-        await query.message.reply_document(InputFile(filename), caption=f"История инструмента ID {tool_id}")
-
-        await query.edit_message_text(f"Экспорт истории инструмента ID {tool_id} завершён.")
+            await query.edit_message_text("Ошибка назначения ответственного.", reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ]))
 
     else:
-        await query.edit_message_text("Неизвестное действие.")
+        await query.edit_message_text("Неизвестное действие.", reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ]))
 
 async def update_tool_card(query, tool: dict, user_id: int):
     users = load_json(USERS_PATH)
@@ -219,8 +256,9 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Генерация кнопок действий
         buttons = generate_action_buttons(tool, role)
 
-        # Плюс кнопка История
-        buttons.insert(0, [InlineKeyboardButton("🗂 История", callback_data=f"export_one:{tool.get('id')}")])
+        # В конец добавляем кнопку История
+        buttons.append([InlineKeyboardButton("🗂 История", callback_data=f"export_one:{tool.get('id')}")])
+        buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
         await update.effective_chat.send_message(
             text=text,
@@ -230,11 +268,10 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message = "Найдено несколько инструментов:\n\n"
         keyboard = []
         for idx, tool in enumerate(found_tools):
-            message += f"{idx+1}. {tool.get('name', 'Без названия')} (ID: {tool.get('id', 'Нет ID')})\n"
             keyboard.append([
                 InlineKeyboardButton(f"{tool.get('name', 'Без названия')}", callback_data=f"view_tool:{tool.get('id')}")
             ])
-        
+
         keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
         await update.effective_chat.send_message(
