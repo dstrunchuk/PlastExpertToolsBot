@@ -33,11 +33,16 @@ async def send_message(update: Update, text: str):
 async def show_registration_menu(update: Update):
     foremen = await get_all_foremen()
 
-    # Убираем Admin из foremen если там есть
+    # Убираем всех, у кого имя Admin
     foremen = [f for f in foremen if f["name"] != "Admin"]
 
-    # Добавляем Admin вручную
-    users_data = [{"name": "Admin", "role": "Супервайзер", "id": ADMIN_ID}] + foremen
+    # Оставляем только уникальные имена
+    unique_names = {}
+    for f in foremen:
+        unique_names[f["name"]] = f
+
+    # Готовим список для кнопок
+    users_data = [{"name": "Admin", "role": "Супервайзер", "id": ADMIN_ID}] + list(unique_names.values())
 
     buttons = []
     for user in users_data:
@@ -50,7 +55,7 @@ async def show_registration_menu(update: Update):
         "Выбери своё имя для регистрации:",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
-
+    
 # Обработка выбора имени
 async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -64,7 +69,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     if name == "Admin" and user_id == ADMIN_ID:
         role = "Супервайзер"
         display_role = "супервайзер"
-        name = update.effective_user.full_name  # Использовать настоящее имя
+        name = update.effective_user.full_name
     elif found_user:
         role = found_user["role"]
         display_role = "супервайзер" if role == "Супервайзер" else "ответственный"
@@ -79,11 +84,9 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         "role": role
     })
 
-    # Если нужно — обновляем foremen (ID в базе)
-    if found_user:
+    # Обновляем foremen только если id ещё не проставлен
+    if found_user and not found_user.get("id"):
         await update_foreman_id(name, user_id)
-    else:
-        await add_foreman_if_missing(name, role, user_id)
 
     await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {display_role}.")
     await show_main_menu(update, context)
