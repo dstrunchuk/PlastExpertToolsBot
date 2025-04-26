@@ -81,17 +81,27 @@ async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.callback_query.edit_message_text("Ваши инструменты:", reply_markup=InlineKeyboardMarkup(keyboard))
 
-# Добавить инструмент (заглушка)
+# НАЙТИ ИНСТРУМЕНТ
+async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.callback_query.answer()
+    await update.callback_query.edit_message_text("Введи ID или название инструмента:")
+
+# ВСЕ ИНСТРУМЕНТЫ
+async def all_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.callback_query.answer()
+    await update.callback_query.edit_message_text("Показ всех инструментов пока не готов. Идём по шагам!")
+
+# ДОБАВИТЬ ИНСТРУМЕНТ
 async def add_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
     await update.callback_query.edit_message_text("Добавление инструмента скоро будет доступно.")
 
-# Экспорт всего в Excel
+# ЭКСПОРТ ВСЕГО
 async def export_all_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
-    await export_pending_to_excel(update, context)
+    await update.callback_query.edit_message_text("Экспорт в Excel скоро будет доступен.")
 
-# Админ-панель (пока заглушка)
+# АДМИН-МЕНЮ
 async def admin_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
     await update.callback_query.edit_message_text("⚙️ Админ-панель в разработке.")
