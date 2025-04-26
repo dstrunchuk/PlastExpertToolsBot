@@ -292,9 +292,33 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Показываем первую страницу результатов
     await send_search_results_from_message(update, context)
+async def search_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    page = context.user_data.get("search_page", 0)
+    if page > 0:
+        context.user_data["search_page"] = page - 1
+
+    await send_search_results(update, context)
 
 
-async def send_search_results_from_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def search_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    found_tools = context.user_data.get("found_tools", [])
+    page = context.user_data.get("search_page", 0)
+    tools_per_page = 5
+
+    if (page + 1) * tools_per_page < len(found_tools):
+        context.user_data["search_page"] = page + 1
+
+    await send_search_results(update, context)
+
+
+async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
     found_tools = context.user_data.get("found_tools", [])
     page = context.user_data.get("search_page", 0)
 
@@ -304,8 +328,8 @@ async def send_search_results_from_message(update: Update, context: ContextTypes
     current_tools = found_tools[start:end]
 
     if not current_tools:
-        await update.effective_chat.send_message(
-            "Инструменты не найдены.",
+        await query.edit_message_text(
+            "На этой странице нет инструментов.",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
             ])
@@ -324,11 +348,9 @@ async def send_search_results_from_message(update: Update, context: ContextTypes
 
     menu_button = [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
 
-    reply_markup = InlineKeyboardMarkup([buttons, menu_button] if buttons else [menu_button])
-
-    await update.effective_chat.send_message(
+    await query.edit_message_text(
         text=message.strip(),
-        reply_markup=reply_markup
+        reply_markup=InlineKeyboardMarkup([buttons, menu_button] if buttons else [menu_button])
     )
         
 async def show_tool_card(update: Update, tool: dict):
@@ -501,11 +523,3 @@ async def export_one_tool_history(update: Update, context: ContextTypes.DEFAULT_
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
         ])
     )   
-
-async def search_prev(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["search_page"] = max(context.user_data.get("search_page", 0) - 1, 0)
-    await send_search_results(update, context)
-
-async def search_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["search_page"] = context.user_data.get("search_page", 0) + 1
-    await send_search_results(update, context)
