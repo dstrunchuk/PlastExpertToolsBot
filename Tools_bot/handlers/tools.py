@@ -286,14 +286,11 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
     found_tools = context.user_data.get("found_tools", [])
     page = context.user_data.get("search_page", 0)
 
     if not found_tools:
-        await query.edit_message_text(
+        await update.effective_chat.send_message(
             "Инструменты не найдены.",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
@@ -307,7 +304,7 @@ async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE
     current_tools = found_tools[start:end]
 
     if not current_tools:
-        await query.edit_message_text(
+        await update.effective_chat.send_message(
             "На этой странице нет инструментов.",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
@@ -320,24 +317,27 @@ async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE
         message += f"{idx}. {tool.get('name', 'Без названия')} (ID: {tool.get('id', 'Нет ID')})\n"
 
     navigation_buttons = []
-
     if start > 0:
         navigation_buttons.append(InlineKeyboardButton("◀️ Назад", callback_data="search_prev"))
     if end < len(found_tools):
         navigation_buttons.append(InlineKeyboardButton("Вперёд ▶️", callback_data="search_next"))
 
-    # Одна кнопка главное меню
-    menu_button = [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
-
     buttons = []
     if navigation_buttons:
         buttons.append(navigation_buttons)
-    buttons.append(menu_button)
+    buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
-    await query.edit_message_text(
-        text=message.strip(),
-        reply_markup=InlineKeyboardMarkup(buttons)
-    )
+    # Вот здесь различие:
+    if update.callback_query:
+        await update.callback_query.edit_message_text(
+            text=message.strip(),
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+    else:
+        await update.effective_chat.send_message(
+            text=message.strip(),
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
 
 async def search_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["search_page"] += 1
