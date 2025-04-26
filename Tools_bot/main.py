@@ -51,4 +51,3 @@ async def on_startup(app):
     await init_db()
 
 app.run_polling(on_startup=on_startup)
-app.run_polling()
