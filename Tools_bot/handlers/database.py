@@ -7,6 +7,11 @@ USERS_PATH = os.path.join(DATA_DIR, "users.json")
 TOOLS_PATH = os.path.join(DATA_DIR, "tools.json")
 FOREMEN_PATH = os.path.join(DATA_DIR, "foremen.json")
 PENDING_PATH = os.path.join(DATA_DIR, "pending.json")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+async def connect_db():
+    pool = await asyncpg.create_pool(DATABASE_URL)
+    return pool
 
 INITIAL_FOREMEN = [
     {"name": "Sergei Strunchuk", "role": "Ответственный"},
