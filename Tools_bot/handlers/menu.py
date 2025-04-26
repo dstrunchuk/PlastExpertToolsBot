@@ -65,6 +65,7 @@ async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     my_tools = [tool for tool in tools if tool.get("responsible_id") == user_id]
 
     if not my_tools:
+        context.user_data["page_my_tools"] = 0  # <<< сбрасываем страницу!
         keyboard = [
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
         ]
@@ -72,7 +73,7 @@ async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "У вас нет закрепленных инструментов.",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
-    return
+        return
 
     # Пагинация
     page = context.user_data.get("page_my_tools", 0)
