@@ -238,23 +238,23 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception:
             pass
 
-    # Ищем по ID
-    for tool in tools:
-        if str(tool.get("id")) == user_message:
-            found_tools = [tool]
-            break
-
-    # Если не нашли по ID, ищем по названию
-    if not found_tools:
-        for tool in tools:
-            if tool.get("name") and user_message.lower() in tool["name"].lower():
-                found_tools.append(tool)
-
     # Удаляем сообщение поиска пользователя
     try:
         await update.message.delete()
     except Exception:
         pass
+
+    # Ищем сначала по ID
+    for tool in tools:
+        if str(tool.get("id")) == user_message:
+            found_tools = [tool]
+            break
+
+    # Если по ID не нашли — ищем по названию
+    if not found_tools:
+        for tool in tools:
+            if tool.get("name") and user_message.lower() in tool["name"].lower():
+                found_tools.append(tool)
 
     if not found_tools:
         await update.effective_chat.send_message(
@@ -265,8 +265,8 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Если найден один инструмент
-    if len(found_tools) == 1:
+    # Найден один инструмент (поиск по ID)
+    if len(found_tools) == 1 and str(found_tools[0].get("id")) == user_message:
         tool = found_tools[0]
         text = (
             f"Название: {tool.get('name', 'Без названия')}\n"
@@ -285,7 +285,7 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Если найдено несколько инструментов
+    # Найдено несколько инструментов (по названию)
     context.user_data["found_tools"] = found_tools
     context.user_data["search_page"] = 0
     await send_search_results(update, context)
@@ -296,19 +296,18 @@ async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE
         query = update.callback_query
         await query.answer()
     else:
-        query = None
+        return
 
     found_tools = context.user_data.get("found_tools", [])
     page = context.user_data.get("search_page", 0)
 
     if not found_tools:
-        if query:
-            await query.edit_message_text(
-                "Инструменты не найдены.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
-                ])
-            )
+        await query.edit_message_text(
+            "Инструменты не найдены.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ])
+        )
         return
 
     tools_per_page = 5
@@ -317,13 +316,12 @@ async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE
     current_tools = found_tools[start:end]
 
     if not current_tools:
-        if query:
-            await query.edit_message_text(
-                "На этой странице нет инструментов.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
-                ])
-            )
+        await query.edit_message_text(
+            "На этой странице нет инструментов.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ])
+        )
         return
 
     message = "Найденные инструменты:\n\n"
@@ -337,18 +335,15 @@ async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE
     if end < len(found_tools):
         navigation_buttons.append(InlineKeyboardButton("Вперёд ▶️", callback_data="search_next"))
 
-    menu_button = [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
-
     keyboard = []
     if navigation_buttons:
         keyboard.append(navigation_buttons)
-    keyboard.append(menu_button)
+    keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
-    if query:
-        await query.edit_message_text(
-            text=message.strip(),
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
+    await query.edit_message_text(
+        text=message.strip(),
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
         
 async def show_tool_card(update: Update, tool: dict):
     name = tool.get("name", "Без названия")
