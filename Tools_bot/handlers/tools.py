@@ -228,7 +228,7 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text.strip()
     tools = await get_all_tools()
 
-    # Удаляем предыдущее сообщение "Введи ID или название"
+    # Удаляем сообщение "Введи ID или название инструмента", если есть
     find_prompt_id = context.user_data.pop("find_prompt_message_id", None)
     if find_prompt_id:
         try:
@@ -242,11 +242,10 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         pass
 
-    # Поиск точного совпадения по ID
+    # Ищем точное совпадение по ID
     exact_tool = next((tool for tool in tools if str(tool.get("id")) == user_message), None)
 
     if exact_tool:
-        # Если нашли по ID — показываем полную карточку
         text = (
             f"Название: {exact_tool.get('name', 'Без названия')}\n"
             f"ID: {exact_tool.get('id', 'Нет ID')}\n"
@@ -256,14 +255,15 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         buttons = generate_action_buttons(exact_tool, role)
         buttons.insert(0, [InlineKeyboardButton("🗂 История", callback_data=f"export_one:{exact_tool.get('id')}")])
-        
+        buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
+
         await update.effective_chat.send_message(
             text=text,
             reply_markup=InlineKeyboardMarkup(buttons)
         )
         return
 
-    # Иначе ищем по названию
+    # Если по ID не нашли — ищем по названию
     found_tools = [tool for tool in tools if tool.get("name") and user_message.lower() in tool["name"].lower()]
 
     if not found_tools:
