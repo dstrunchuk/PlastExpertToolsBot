@@ -84,7 +84,17 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if responsible_id:
             responsible_user = next((u for u in users if u["id"] == responsible_id), None)
             if responsible_user:
-                await send_success_message(query, f"Вы отправили запрос на передачу {tool['name']} у {responsible_user['name']}.")
+                try:
+                    # Отправляем уведомление ответственному
+                    await context.bot.send_message(
+                        chat_id=responsible_id,
+                        text=f"🔔 Пользователь {user['name']} хочет получить у вас инструмент *{tool['name']}* (ID: {tool.get('id', 'Без ID')}).",
+                        parse_mode="Markdown"
+                    )
+                    await query.edit_message_text(f"Запрос на передачу инструмента отправлен {responsible_user['name']}.")
+                except Exception as e:
+                    print(f"Ошибка при отправке запроса: {e}")
+                    await query.edit_message_text(f"Не удалось отправить запрос ответственному ({responsible_user['name']}).")
             else:
                 await query.edit_message_text("Ответственный пользователь не найден.")
         else:
@@ -281,7 +291,8 @@ def generate_action_buttons(tool: dict, role: str):
         elif responsible_id == tool.get("responsible_id"):
             buttons.append([InlineKeyboardButton("📤 Передать", callback_data=f"transfer:{tool['id']}")])
             buttons.append([InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool['id']}")])
-        else:
+        elif responsible_id is not None:
+            # Только если реально есть ответственный (а не пустота)
             buttons.append([InlineKeyboardButton("📥 Запросить передачу", callback_data=f"request:{tool['id']}")])
 
     # Супервайзер / Босс
