@@ -167,7 +167,7 @@ async def add_foreman_if_missing(name, role, user_id):
             (name, role, user_id)
         )
         await db.commit()
-        
+
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 USERS_PATH = os.path.join(DATA_DIR, "users.json")
@@ -238,3 +238,27 @@ async def migrate_json_to_db():
 
         await db.commit()
     print("✅ Миграция JSON в базу завершена.")
+
+# Заливка начальных данных прорабов
+INITIAL_FOREMEN = [
+    {"name": "Sergei Strunchuk", "role": "Ответственный"},
+    {"name": "Vladyslav Parkhomenko", "role": "Ответственный"},
+    {"name": "Dmitri Kralya", "role": "Ответственный"},
+    {"name": "Dmitri Karalko", "role": "Ответственный"},
+    {"name": "Vitali Kulak", "role": "Ответственный"},
+    {"name": "Oleh Kiekshyn", "role": "Ответственный"},
+    {"name": "Aleksei Panin", "role": "Супервайзер"},
+    {"name": "Shamil Kurbanov", "role": "Супервайзер"},
+    {"name": "Juri Teras", "role": "Супервайзер"},
+    {"name": "Alexei Dohin", "role": "Босс"}
+]
+
+async def seed_foremen():
+    async with aiosqlite.connect(DB_PATH) as db:
+        for foreman in INITIAL_FOREMEN:
+            await db.execute(
+                "INSERT OR IGNORE INTO foremen (id, name, role) VALUES (?, ?, ?)",
+                (0, foreman["name"], foreman["role"])
+            )
+        await db.commit()
+    print("✅ Прорабы успешно загружены в базу.")
