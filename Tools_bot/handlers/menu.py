@@ -122,41 +122,27 @@ async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ВСЕ ИНСТРУМЕНТЫ
 async def all_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
-
     tools = await get_all_tools()
 
     if not tools:
-        await update.callback_query.edit_message_text(
-            "Инструменты не найдены.",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]])
-        )
+        await update.callback_query.edit_message_text("Инструментов нет.")
         return
 
-    # Пагинация
     page = context.user_data.get("page_all_tools", 0)
     tools_per_page = 5
     start = page * tools_per_page
     end = start + tools_per_page
+
     current_tools = tools[start:end]
 
-    if not current_tools:
-        await update.callback_query.edit_message_text(
-            "Инструменты не найдены на этой странице.",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]])
-        )
-        return
-
-    message = "Список инструментов:\n\n"
+    message = "Все инструменты:\n\n"
     for tool in current_tools:
-        name = tool.get("name", "Без названия")
-        tool_id = tool.get("id", "Без ID")
-        responsible = tool.get("responsible", "Никто")
-        object_name = tool.get("object", "Не указан")
-
-        message += (f"*Название:* {name}\n"
-                    f"*ID:* {tool_id}\n"
-                    f"*Объект:* {object_name}\n"
-                    f"*Ответственный:* {responsible}\n\n")
+        message += (
+            f"Название: {tool.get('name', 'Без названия')}\n"
+            f"ID: {tool.get('id', 'Нет ID')}\n"
+            f"Объект: {tool.get('object', 'Не указан')}\n"
+            f"Ответственный: {tool.get('responsible', 'Никто')}\n\n"
+        )
 
     buttons = []
 
@@ -168,8 +154,7 @@ async def all_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     buttons.append(InlineKeyboardButton("◀️ Главное меню", callback_data="main_back"))
 
     await update.callback_query.edit_message_text(
-        message.strip(),
-        parse_mode="Markdown",
+        text=message.strip(),
         reply_markup=InlineKeyboardMarkup([buttons])
     )
 

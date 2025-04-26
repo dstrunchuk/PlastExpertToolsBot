@@ -14,7 +14,7 @@ from handlers.menu import (
     show_main_menu,
 )
 from handlers.start import start_command, handle_registration
-from handlers.database import init_db, migrate_json_to_db
+from handlers.database import init_db, migrate_json_to_db, seed_foremen
 from dotenv import load_dotenv
 import os
 
@@ -27,6 +27,7 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Прописан в .env
 async def on_startup(app):
     await init_db()
     await migrate_json_to_db()
+    await seed_foremen()  # <<< Добавляем этот вызов
     await app.bot.set_webhook(WEBHOOK_URL)
     
 

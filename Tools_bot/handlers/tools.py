@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes
 import os, json
 import pandas as pd
 from datetime import datetime
-from handlers.database import get_tool_by_id, update_tool, log_action, get_all_foremen, get_all_users
+from handlers.database import get_tool_by_id, update_tool, log_action, get_all_foremen, get_all_users, get_all_tools
 import re
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -159,53 +159,56 @@ async def update_tool_card(query, tool: dict, user_id: int):
 
 async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text.strip()
-    user_id = update.effective_user.id
-
     tools = await get_all_tools()
 
-    # Ищем сначала по ID (точное совпадение)
-    found_tools = [tool for tool in tools if str(tool["id"]) == user_message]
+    found_tools = []
 
-    # Если по ID не нашли — ищем по названию (нечувствительно к регистру, частичное совпадение)
+    # Сначала ищем по ID (точное совпадение)
+    for tool in tools:
+        if str(tool.get("id")) == user_message:
+            found_tools = [tool]
+            break
+
+    # Потом ищем по названию (частичное совпадение)
     if not found_tools:
-        pattern = re.compile(re.escape(user_message), re.IGNORECASE)
-        found_tools = [tool for tool in tools if pattern.search(tool["name"])]
+        for tool in tools:
+            if tool.get("name") and user_message.lower() in tool["name"].lower():
+                found_tools.append(tool)
 
     if not found_tools:
-        await update.message.reply_text(
-            "Инструмент не найден.",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]])
-        )
+        await update.message.reply_text("Инструмент не найден.")
         return
 
     if len(found_tools) == 1:
-        # Один инструмент найден
         tool = found_tools[0]
-        from handlers.tools import create_tool_card_text, generate_action_buttons
-        text = create_tool_card_text(tool)
-        buttons = generate_action_buttons(tool, role="Ответственный")  # пока роль стандартная
-        await update.message.reply_text(text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(buttons))
+        text = (
+            f"Название: {tool.get('name', 'Без названия')}\n"
+            f"ID: {tool.get('id', 'Нет ID')}\n"
+            f"Объект: {tool.get('object', 'Не указан')}\n"
+            f"Ответственный: {tool.get('responsible', 'Никто')}"
+        )
+        await update.message.reply_text(
+            text=text,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ])
+        )
     else:
-        # Найдено несколько инструментов
+        message = "Найдено несколько инструментов:\n\n"
         keyboard = []
         for idx, tool in enumerate(found_tools):
-            tool_id = tool.get("id")
-            if not tool_id or str(tool_id).lower() == "nan":
-                callback_data = f"view_tool_by_index:{idx}"
-                button_text = f"{tool.get('name', 'Без названия')} (без ID)"
-            else:
-                callback_data = f"view_tool:{tool_id}"
-                button_text = f"{tool.get('name', 'Без названия')} (ID: {tool_id})"
-
-            keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
+            message += f"{idx+1}. {tool.get('name', 'Без названия')} (ID: {tool.get('id', 'Нет ID')})\n"
+            keyboard.append([
+                InlineKeyboardButton(f"{tool.get('name', 'Без названия')}", callback_data=f"view_tool:{tool.get('id')}")
+            ])
 
         keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
 
         await update.message.reply_text(
-            "Найдено несколько инструментов:",
+            text=message,
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
-
+        
 async def show_tool_card(update: Update, tool: dict):
     name = tool.get("name", "Без названия")
     tool_id = tool.get("id", "Нет ID")
