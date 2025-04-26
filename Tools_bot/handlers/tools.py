@@ -251,10 +251,10 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
             break
 
     # Если по ID не нашли — ищем по названию
-    if not found_tools:
-        for tool in tools:
-            if tool.get("name") and user_message.lower() in tool["name"].lower():
-                found_tools.append(tool)
+    tool_id = str(tool.get("id", "")).strip()
+    if tool_id and tool_id == user_message:
+        found_tools = [tool]
+        break
 
     if not found_tools:
         await update.effective_chat.send_message(
