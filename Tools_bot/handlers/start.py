@@ -13,14 +13,21 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if user:
         if user_id == ADMIN_ID:
-            await update.message.reply_text("Вы зарегистрированы как админ. Можете выбрать роль снова.")
+            await send_message(update, "Вы зарегистрированы как админ. Можете выбрать роль снова.")
             await show_registration_menu(update)
         else:
-            await update.message.reply_text("Вы уже зарегистрированы.")
+            await send_message(update, "Вы уже зарегистрированы.")
             await show_main_menu(update, context)
         return
 
     await show_registration_menu(update)
+
+# Отправка сообщения или изменение сообщения
+async def send_message(update: Update, text: str):
+    if update.message:
+        await update.message.reply_text(text)
+    elif update.callback_query:
+        await update.callback_query.edit_message_text(text)
 
 # Меню выбора имени
 async def show_registration_menu(update: Update):
@@ -36,10 +43,16 @@ async def show_registration_menu(update: Update):
         else:
             buttons.append([InlineKeyboardButton(user['name'], callback_data=f"register:{user['name']}")])
 
-    await update.message.reply_text(
-        "Выбери своё имя для регистрации:",
-        reply_markup=InlineKeyboardMarkup(buttons)
-    )
+    if update.message:
+        await update.message.reply_text(
+            "Выбери своё имя для регистрации:",
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+    elif update.callback_query:
+        await update.callback_query.edit_message_text(
+            "Выбери своё имя для регистрации:",
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
 
 # Обработка выбора имени
 async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -59,7 +72,6 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         role = found_user["role"]
         display_role = "супервайзер" if role == "Супервайзер" else "ответственный"
     else:
-        # Если имя нет в foremen, добавляем
         role = "Ответственный"
         display_role = "ответственный"
 
