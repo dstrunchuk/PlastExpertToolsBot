@@ -229,6 +229,14 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     found_tools = []
 
+    # Если было сообщение "Введи ID или название инструмента" — удаляем его
+    find_prompt_id = context.user_data.pop("find_prompt_message_id", None)
+    if find_prompt_id:
+        try:
+            await update.effective_chat.delete_message(find_prompt_id)
+        except Exception as e:
+            print(f"Не удалось удалить сообщение поиска: {e}")
+
     # Ищем сначала по ID
     for tool in tools:
         if str(tool.get("id")) == user_message:
