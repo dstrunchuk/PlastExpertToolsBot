@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes
 import os, json
 import pandas as pd
 from datetime import datetime
-from handlers.database import get_tool_by_id, update_tool, log_action, get_all_foremen, get_all_users, get_all_tools, get_tool_history
+from handlers.database import get_tool_by_id, update_tool, log_action, get_all_foremen, get_all_users, get_all_tools, get_tool_history, get_user_by_id
 import re
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
