@@ -15,23 +15,19 @@ def load_json(filename):
     with open(filename, "r", encoding="utf-8") as f:
         return json.load(f)
 
+from handlers.database import get_user_by_id
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
 async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    users = load_json(USERS_PATH)
-    user_data = next((u for u in users if u["id"] == user_id), None)
+    user = await get_user_by_id(user_id)
 
-    if not user_data:
-        new_user = {
-            "id": user_id,
-            "name": update.effective_user.full_name,
-            "role": "Ответственный"
-        }
-        users.append(new_user)
-        with open(USERS_PATH, "w", encoding="utf-8") as f:
-            json.dump(users, f, ensure_ascii=False, indent=2)
-        user_data = new_user
+    # Если пользователь не найден — зарегистрировать его как Ответственного
+    if not user:
+        await update.message.reply_text("Сначала зарегистрируйтесь через /start.")
+        return
 
-    role = user_data.get("role", "Ответственный")
+    role = user.get("role", "Ответственный")
 
     buttons = []
 

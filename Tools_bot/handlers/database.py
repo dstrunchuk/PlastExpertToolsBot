@@ -37,6 +37,15 @@ async def init_db():
             )
         """)
         await db.commit()
+        # Таблица прорабов
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS foremen (
+                id INTEGER,
+                name TEXT,
+                role TEXT
+            )
+        """)
+        await db.commit()
 
 # Функция для получения всех инструментов
 async def get_all_tools():
@@ -67,15 +76,6 @@ async def update_tool(tool):
         await db.execute(
             "UPDATE tools SET name = ?, object = ?, responsible = ?, responsible_id = ? WHERE id = ?",
             (tool["name"], tool["object"], tool.get("responsible"), tool.get("responsible_id"), tool["id"])
-        )
-        await db.commit()
-
-# Функция для логирования действия
-async def log_action(entry):
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute(
-            "INSERT INTO pending (timestamp, user_id, action, tool_id, tool_name, object, responsible) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (entry["timestamp"], entry["user_id"], entry["action"], entry["tool_id"], entry["tool_name"], entry["object"], entry["responsible"])
         )
         await db.commit()
 
@@ -119,7 +119,7 @@ async def get_tool_by_id(tool_id):
         return None
     
 async def log_action(user_id, action, tool):
-    async with aiosqlite.connect("database.db") as db:
+    async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("""
             INSERT INTO pending (timestamp, user_id, action, tool_id, tool_name, object, responsible)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -132,4 +132,36 @@ async def log_action(user_id, action, tool):
             tool.get("object"),
             tool.get("responsible")
         ))
+        await db.commit()
+
+async def save_user(user):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT INTO users (id, name, role) VALUES (?, ?, ?)",
+            (user["id"], user["name"], user["role"])
+        )
+        await db.commit()
+
+async def get_user_by_id(user_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("SELECT id, name, role FROM users WHERE id = ?", (user_id,))
+        row = await cursor.fetchone()
+        if row:
+            return {"id": row[0], "name": row[1], "role": row[2]}
+        return None
+
+async def update_foreman_id(name, user_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "UPDATE foremen SET id = ? WHERE name = ?",
+            (user_id, name)
+        )
+        await db.commit()
+
+async def add_foreman_if_missing(name, role, user_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT INTO foremen (name, role, id) VALUES (?, ?, ?)",
+            (name, role, user_id)
+        )
         await db.commit()
