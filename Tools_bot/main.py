@@ -1,6 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
-from handlers.tools import handle_view_tool, handle_view_tool_by_index
+from handlers.tools import handle_view_tool, handle_view_tool_by_index, handle_tool_action, process_tool_id
 from handlers.menu import (
     find_tool_handler,
     all_tools_handler,
@@ -14,14 +14,21 @@ from handlers.menu import (
     show_main_menu,
 )
 from handlers.start import start_command, handle_registration
-from handlers.tools import handle_tool_action, process_tool_id, handle_view_tool
+from handlers.database import init_db
 from dotenv import load_dotenv
 import os
 
 # Инициализация бота
 load_dotenv()
+
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-app = ApplicationBuilder().token(BOT_TOKEN).build()
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Прописан в .env
+
+async def on_startup(app):
+    await init_db()
+    await app.bot.set_webhook(WEBHOOK_URL)
+
+app = ApplicationBuilder().token(BOT_TOKEN).post_init(on_startup).build()
 
 # Хендлеры
 app.add_handler(CommandHandler("start", start_command))
@@ -43,11 +50,10 @@ app.add_handler(CallbackQueryHandler(handle_tool_action, pattern="^(take|store|r
 
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_tool_id))
 
-# Запуск бота
-print("Бот запущен.")
-from handlers.database import init_db
-
-async def on_startup(app):
-    await init_db()
-
-app.run_polling(on_startup=on_startup)
+# Запуск бота через WebHook
+print("Бот запущен через WebHook.")
+app.run_webhook(
+    listen="0.0.0.0",
+    port=int(os.getenv("PORT", 8080)),
+    webhook_url=WEBHOOK_URL
+)
