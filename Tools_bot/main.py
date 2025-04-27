@@ -16,7 +16,7 @@ from handlers.menu import (
     add_object_handler,
 )
 from handlers.start import start_command, handle_registration
-from handlers.database import init_db, seed_foremen
+from handlers.database import init_db
 from dotenv import load_dotenv
 import os
 
@@ -28,7 +28,6 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Прописан в .env
 
 async def on_startup(app):
     await init_db()
-    await seed_foremen()
     await app.bot.set_webhook(WEBHOOK_URL)
     print("✅ База и бот готовы!")
 
