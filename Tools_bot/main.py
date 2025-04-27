@@ -28,6 +28,7 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Прописан в .env
 
 async def on_startup(app):
     await init_db()
+    app.bot_data["pool"] = pool
     await app.bot.set_webhook(WEBHOOK_URL)
     print("✅ База и бот готовы!")
 

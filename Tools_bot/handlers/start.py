@@ -9,7 +9,7 @@ ADMIN_ID = 987664835  # Твой ID админа
 # /start команда
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    user = await get_user_by_id(user_id)
+    user = await get_user_by_id(pool, user_id)
 
     if user:
         if user_id == ADMIN_ID:
@@ -31,7 +31,7 @@ async def send_message(update: Update, text: str):
 
 # Меню выбора имени
 async def show_registration_menu(update: Update):
-    foremen = await get_all_foremen()
+    foremen = await get_all_foremen(pool)
 
     # Убираем всех, у кого имя Admin
     foremen = [f for f in foremen if f["name"] != "Admin"]
@@ -55,7 +55,7 @@ async def show_registration_menu(update: Update):
         "Выбери своё имя для регистрации:",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
-    
+
 # Обработка выбора имени
 async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
