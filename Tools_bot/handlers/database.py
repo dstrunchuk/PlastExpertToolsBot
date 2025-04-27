@@ -1,43 +1,50 @@
 from supabase import create_client, Client
 import os
+from datetime import datetime
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# Получение всех инструментов
 async def get_all_tools():
-    data = supabase.table("tools").select("*").execute()
-    return data.data
+    response = supabase.table("tools").select("*").execute()
+    return response.data if response.data else []
 
+# Получение одного инструмента по ID
 async def get_tool_by_id(tool_id):
-    data = supabase.table("tools").select("*").eq("id", tool_id).single().execute()
-    return data.data
+    response = supabase.table("tools").select("*").eq("id", tool_id).maybe_single().execute()
+    return response.data if response.data else None
 
+# Добавление нового инструмента
 async def add_tool(tool):
     supabase.table("tools").insert(tool).execute()
 
+# Обновление существующего инструмента
 async def update_tool(tool):
     supabase.table("tools").update(tool).eq("id", tool["id"]).execute()
 
+# Получение всех пользователей
 async def get_all_users():
-    data = supabase.table("users").select("*").execute()
-    return data.data
+    response = supabase.table("users").select("*").execute()
+    return response.data if response.data else []
 
+# Сохранение пользователя (добавление или обновление)
 async def save_user(user):
     supabase.table("users").upsert(user).execute()
 
+# Получение пользователя по ID
 async def get_user_by_id(user_id):
     response = supabase.table("users").select("*").eq("id", user_id).maybe_single().execute()
-    if response and response.data:
-        return response.data
-    else:
-        return None
+    return response.data if response.data else None
 
+# Получение всех прорабов
 async def get_all_foremen():
-    data = supabase.table("foremen").select("*").execute()
-    return data.data
+    response = supabase.table("foremen").select("*").execute()
+    return response.data if response.data else []
 
+# Добавление нового прораба
 async def add_foreman_if_missing(name, role, user_id):
     supabase.table("foremen").insert({
         "id": user_id,
@@ -45,12 +52,14 @@ async def add_foreman_if_missing(name, role, user_id):
         "role": role
     }).execute()
 
+# Обновление ID у прораба
 async def update_foreman_id(name, user_id):
     supabase.table("foremen").update({"id": user_id}).eq("name", name).execute()
 
+# Логирование действий с инструментом
 async def log_action(user_id, action, tool):
     supabase.table("pending").insert({
-        "timestamp": tool.get("timestamp"),
+        "timestamp": datetime.now().isoformat(),
         "user_id": user_id,
         "action": action,
         "tool_id": tool.get("id"),
@@ -59,9 +68,14 @@ async def log_action(user_id, action, tool):
         "responsible": tool.get("responsible"),
     }).execute()
 
+# Получение истории действий по инструменту
 async def get_tool_history(tool_id):
-    data = supabase.table("pending").select("*").eq("tool_id", tool_id).order("timestamp", desc=True).execute()
-    return data.data
+    response = supabase.table("pending").select("*").eq("tool_id", tool_id).order("timestamp", desc=True).execute()
+    return response.data if response.data else []
 
-async def create_user(user_id):
-    await supabase.table("users").insert({"id": user_id}).execute()
+# Создание пустого пользователя (если требуется)
+async def create_user(user_id, user_name):
+    await supabase.table("users").insert({
+        "id": user_id,
+        "name": user_name
+    }).execute()

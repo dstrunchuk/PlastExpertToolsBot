@@ -25,19 +25,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     # Пользователя нет — создаём
-    await create_user(user_id, user_name)  # Передаём и ID, и имя
+    await create_user(user_id, user_name)
+    await save_user({"id": user_id, "name": user_name, "role": "Ответственный"})
     await send_message(update, "Вы успешно зарегистрированы!")
     await show_registration_menu(update)
-
-# Функция для создания пользователя в базе данных
-async def create_user(user_id, user_name):
-    # Убедитесь, что передаёте как ID, так и имя пользователя
-    response = await supabase.table("users").insert({
-        "id": user_id,  # ID пользователя
-        "name": user_name  # Имя пользователя
-    }).execute()
-
-    return response.data if response.status_code == 201 else None
 
 # Отправка сообщения или изменение сообщения
 async def send_message(update: Update, text: str):

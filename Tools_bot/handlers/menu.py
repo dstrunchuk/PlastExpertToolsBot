@@ -1,22 +1,9 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 import os
-import json
-from handlers.tools import load_json, TOOLS_PATH, export_pending_to_excel
 from handlers.database import get_all_tools
 import pandas as pd
 from telegram import InputFile
-
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
-USERS_PATH = os.path.join(DATA_DIR, "users.json")
-DB_PATH = "database.db"
-
-# Функция отображения главного меню
-def load_json(filename):
-    if not os.path.exists(filename):
-        return []
-    with open(filename, "r", encoding="utf-8") as f:
-        return json.load(f)
 
 from handlers.database import get_user_by_id
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup

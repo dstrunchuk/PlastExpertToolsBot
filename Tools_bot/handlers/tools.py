@@ -1,44 +1,10 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputFile
 from telegram.ext import ContextTypes
-import os, json
 import pandas as pd
-from io import BytesIO
 from datetime import datetime
 from handlers.database import get_tool_by_id, update_tool, log_action, get_all_foremen, get_all_users, get_all_tools, get_tool_history, get_user_by_id
 import re
 
-
-def load_json(path):
-    if not os.path.exists(path):
-        return []
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def save_json(path, data):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-def log_action(user_id, action, tool):
-    users = load_json(USERS_PATH)
-    user = next((u for u in users if u["id"] == user_id), None)
-    user_name = user.get("name", "Неизвестный пользователь") if user else "Неизвестный пользователь"
-
-    log = load_json(PENDING_PATH)
-
-    log.append({
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "user_id": user_id,
-        "user_name": user_name,
-        "action": action,
-        "tool_id": tool.get("id"),
-        "tool_name": tool.get("name"),
-        "object": tool.get("object"),
-        "responsible": tool.get("responsible", "Нет"),
-        "responsible_id": tool.get("responsible_id", "Нет"),
-        "action_description": f"{user_name} -> {action} [{tool.get('name')}]"
-    })
-
-    save_json(PENDING_PATH, log)
 
 async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -68,15 +34,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         tool["responsible"] = user["name"]
         tool["responsible_id"] = user_id
         await update_tool(tool)
-        await log_action({
-            "timestamp": datetime.now().isoformat(),
-            "user_id": user_id,
-            "action": "Стал ответственным",
-            "tool_id": tool["id"],
-            "tool_name": tool["name"],
-            "object": tool["object"],
-            "responsible": user["name"]
-        })
+        await log_action(user_id, "Стал ответственным", tool)
         await query.edit_message_text(f"Вы стали ответственным за {tool['name']}.", reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
         ]))
@@ -86,15 +44,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         tool["responsible_id"] = None
         tool["object"] = "Ladu"
         await update_tool(tool)
-        await log_action({
-            "timestamp": datetime.now().isoformat(),
-            "user_id": user_id,
-            "action": "Оставил на складе",
-            "tool_id": tool["id"],
-            "tool_name": tool["name"],
-            "object": tool["object"],
-            "responsible": "Никто"
-        })
+        await log_action(user_id, "Оставил на складе", tool)
         await query.edit_message_text(f"Инструмент {tool['name']} оставлен на складе.", reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
         ]))
@@ -155,15 +105,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
             tool["responsible"] = new_user["name"]
             tool["responsible_id"] = new_user["id"]
             await update_tool(tool)
-            await log_action({
-                "timestamp": datetime.now().isoformat(),
-                "user_id": user_id,
-                "action": f"Передал инструмент → {new_user['name']}",
-                "tool_id": tool["id"],
-                "tool_name": tool["name"],
-                "object": tool["object"],
-                "responsible": new_user["name"]
-            })
+            await log_action(user_id, f"Передал инструмент → {new_user['name']}", tool)
             await query.edit_message_text(f"Инструмент {tool['name']} передан {new_user['name']}.", reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
             ]))
@@ -179,15 +121,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
             tool["responsible"] = new_user["name"]
             tool["responsible_id"] = new_user["id"]
             await update_tool(tool)
-            await log_action({
-                "timestamp": datetime.now().isoformat(),
-                "user_id": user_id,
-                "action": f"Назначил {new_user['name']} ответственным",
-                "tool_id": tool["id"],
-                "tool_name": tool["name"],
-                "object": tool["object"],
-                "responsible": new_user["name"]
-            })
+            await log_action(user_id, f"Назначил {new_user['name']} ответственным", tool)
             await query.edit_message_text(f"{new_user['name']} назначен ответственным за {tool['name']}.", reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
             ]))
@@ -202,7 +136,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         ]))
 
 async def update_tool_card(query, tool: dict, user_id: int):
-    users = load_json(USERS_PATH)
+    users = await get_all_users()
     user = next((u for u in users if u["id"] == user_id), None)
     role = user.get("role", "Ответственный") if user else "Ответственный"
 
@@ -373,7 +307,7 @@ async def handle_view_tool(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    tools = load_json(TOOLS_PATH)
+    tools = await get_all_tools()
     tool_id = query.data.split(":")[1]
     tool = next((t for t in tools if str(t.get("id")) == tool_id), None)
 
@@ -382,7 +316,7 @@ async def handle_view_tool(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     user_id = query.from_user.id
-    users = load_json(USERS_PATH)
+    users = await get_all_users()
     user = next((u for u in users if u["id"] == user_id), None)
     role = user.get("role", "Ответственный") if user else "Ответственный"
 
@@ -397,8 +331,8 @@ async def handle_view_tool_by_index(update: Update, context: ContextTypes.DEFAUL
     await query.answer()
 
     user_id = query.from_user.id
-    users = load_json(USERS_PATH)
-    tools = load_json(TOOLS_PATH)
+    users = await get_all_users()
+    tools = await get_all_tools()
 
     try:
         index = int(query.data.split(":")[1])
