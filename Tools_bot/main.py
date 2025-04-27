@@ -58,6 +58,8 @@ app.add_handler(CallbackQueryHandler(handle_view_tool_by_index, pattern="^view_t
 app.add_handler(CallbackQueryHandler(handle_registration, pattern="^register:"))
 app.add_handler(CallbackQueryHandler(handle_tool_action, pattern="^(take|store|request|transfer|assign|export|confirm_transfer|confirm_assign):"))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_tool_id))
+app.add_handler(CallbackQueryHandler(foremen_list_handler, pattern="^foremen_list$"))
+app.add_handler(CallbackQueryHandler(show_foreman_tools_handler, pattern="^foreman_tools:"))
 
 # Запуск бота через WebHook
 print("Бот запущен через WebHook.")

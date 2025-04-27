@@ -26,10 +26,11 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("🔍 Найти инструмент", callback_data="find_tool")],
             [InlineKeyboardButton("🔨 Мои инструменты", callback_data="my_tools")],
             [InlineKeyboardButton("📋 Весь инструмент", callback_data="all_tools")],
+            [InlineKeyboardButton("🧑‍🔧 Ответственные", callback_data="foremen_list")],  # <<< новая кнопка
             [InlineKeyboardButton("📥 Экспорт всего в Excel", callback_data="export_all")],
             [InlineKeyboardButton("➕ Добавить инструмент", callback_data="add_tool")],
             [InlineKeyboardButton("➕ Добавить ответственного", callback_data="add_foreman")],
-            [InlineKeyboardButton("➕ Добавить объект", callback_data="add_object")]
+           [InlineKeyboardButton("➕ Добавить объект", callback_data="add_object")]
         ]
     else:
         buttons = [
@@ -109,11 +110,16 @@ async def my_tools_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # НАЙТИ ИНСТРУМЕНТ
 async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
-
-    # Отправляем новое сообщение
-    sent_message = await update.callback_query.message.reply_text("Введи ID или название инструмента:")
-
-    # Сохраняем ID отправленного сообщения, чтобы потом удалить
+    
+    buttons = [
+        [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+    ]
+    
+    sent_message = await update.callback_query.message.reply_text(
+        "Введи ID или название инструмента:",
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
+    
     context.user_data["find_prompt_message_id"] = sent_message.message_id
 
 # ВСЕ ИНСТРУМЕНТЫ
@@ -166,7 +172,12 @@ async def all_tools_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ДОБАВИТЬ ИНСТРУМЕНТ
 async def add_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
-    await update.callback_query.edit_message_text("Добавление инструмента скоро будет доступно.")
+    await update.callback_query.edit_message_text(
+        "Добавление инструмента скоро будет доступно.",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ])
+    )
 
 # ЭКСПОРТ ВСЕГО
 async def export_all_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -231,6 +242,52 @@ async def add_object_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await update.callback_query.answer()
     await update.callback_query.edit_message_text(
         "Функция добавления объекта скоро будет доступна.",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ])
+    )
+
+async def foremen_list_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.callback_query.answer()
+
+    foremen = await get_all_foremen()
+    if not foremen:
+        await update.callback_query.edit_message_text("Нет доступных ответственных.")
+        return
+
+    keyboard = []
+    for foreman in foremen:
+        keyboard.append([InlineKeyboardButton(foreman['name'], callback_data=f"foreman_tools:{foreman['id']}")])
+
+    keyboard.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
+
+    await update.callback_query.edit_message_text(
+        "Выберите ответственного:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+async def show_foreman_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    foreman_id = int(query.data.split(":")[1])
+
+    tools = await get_all_tools()
+    user_tools = [tool for tool in tools if tool.get("responsible_id") == foreman_id]
+
+    if not user_tools:
+        await query.edit_message_text("У этого ответственного нет инструментов.")
+        return
+
+    message = f"Инструменты ответственного:\n\n"
+    for tool in user_tools:
+        message += (
+            f"Название: {tool.get('name', 'Без названия')}\n"
+            f"ID: {tool.get('id', 'Нет ID')}\n"
+            f"Объект: {tool.get('object', 'Не указан')}\n\n"
+        )
+
+    await query.edit_message_text(
+        text=message.strip(),
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
         ])
