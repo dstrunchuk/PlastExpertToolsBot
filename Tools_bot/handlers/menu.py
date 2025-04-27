@@ -50,6 +50,10 @@ async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
     user_id = update.effective_user.id
 
+    def escape_markdown(text: str) -> str:
+        escape_chars = r'_*[]()~`>#+-=|{}.!'
+        return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
+
     tools = await get_all_tools()  # Теперь берём через базу!
 
     my_tools = [tool for tool in tools if str(tool.get("responsible_id")) == str(user_id)]
