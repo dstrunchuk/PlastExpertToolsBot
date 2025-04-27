@@ -91,16 +91,16 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         await update_foreman_id(name, user_id)
 
     # Ищем все инструменты, где responsible совпадает с его именем И НЕТ responsible_id
-    assigned_count = 0  # Счётчик закреплённых инструментов
+    assigned_count = 0
 
     tools = await get_all_tools()
     for tool in tools:
-        if tool.get("responsible") == name and not tool.get("responsible_id"):
+        responsible = tool.get("responsible")
+        if responsible and responsible.strip().lower() == name.strip().lower() and not tool.get("responsible_id"):
             tool["responsible_id"] = user_id
             await update_tool(tool)
             assigned_count += 1
 
-    # Сообщение о регистрации и количестве закреплённых инструментов
     await query.edit_message_text(
         f"Привет, {name}! Ты зарегистрирован как {display_role}.\n"
         f"На тебя закреплено {assigned_count} инструмент(ов)."
