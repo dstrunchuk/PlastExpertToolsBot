@@ -9,7 +9,7 @@ ADMIN_ID = 987664835  # Твой ID админа
 # /start команда
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    user = await get_user_by_id(pool, user_id)
+    user = await get_user_by_id( user_id)
 
     if user:
         if user_id == ADMIN_ID:

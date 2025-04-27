@@ -5,3 +5,4 @@ openpyxl
 aiosqlite
 httpx
 asyncpg
+supabase-py

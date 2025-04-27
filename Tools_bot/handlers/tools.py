@@ -222,11 +222,11 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     user_id = update.effective_user.id
-    user = await get_user_by_id(pool, user_id)
+    user = await get_user_by_id( user_id)
     role = user.get("role", "Ответственный") if user else "Ответственный"
 
     user_message = update.message.text.strip()
-    tools = await get_all_tools(pool)
+    tools = await get_all_tools()
 
     # Удаляем сообщение "Введи ID или название инструмента"
     find_prompt_id = context.user_data.pop("find_prompt_message_id", None)

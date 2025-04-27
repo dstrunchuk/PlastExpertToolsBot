@@ -16,7 +16,11 @@ from handlers.menu import (
     add_object_handler,
 )
 from handlers.start import start_command, handle_registration
-from handlers.database import init_db, connect_db
+from handlers.database import (   # <<< Важно: вот так теперь!
+    get_all_tools, get_tool_by_id, update_tool, log_action,
+    get_all_foremen, get_all_users, get_tool_history,
+    get_user_by_id, save_user, add_foreman_if_missing, update_foreman_id, add_tool
+)
 from dotenv import load_dotenv
 import os
 
@@ -24,14 +28,13 @@ import os
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Прописан в .env
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 async def on_startup(app):
-    pool = await connect_db()            # создаём соединение с базой
-    app.bot_data["pool"] = pool           # кладём pool в bot_data
-    await init_db(pool)                  # передаем pool в init_db
     await app.bot.set_webhook(WEBHOOK_URL)
-    print("✅ База и бот готовы!")
+    print("✅ Бот подключен к Supabase и WebHook установлен!")
 
 app = ApplicationBuilder().token(BOT_TOKEN).post_init(on_startup).build()
 
