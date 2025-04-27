@@ -51,7 +51,7 @@ async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     tools = await get_all_tools()  # Теперь берём через базу!
 
-    my_tools = [tool for tool in tools if tool.get("responsible_id") == user_id]
+    my_tools = [tool for tool in tools if str(tool.get("responsible_id")) == str(user_id)]
 
     if not my_tools:
         context.user_data["page_my_tools"] = 0
