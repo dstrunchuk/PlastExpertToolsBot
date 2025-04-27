@@ -78,7 +78,8 @@ async def get_tool_history(tool_id):
 
 # Создание пустого пользователя (если требуется)
 async def create_user(user_id, user_name):
-    await supabase.table("users").insert({
+    supabase.table("users").insert({
         "id": user_id,
-        "name": user_name
+        "name": user_name,
+        "role": "Ответственный"
     }).execute()
