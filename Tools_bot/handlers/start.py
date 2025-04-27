@@ -102,6 +102,12 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
             await update_tool(tool)
             assigned_count += 1
 
+    # После обновления всех инструментов — проверка через вывод
+    tools_check = await get_all_tools()
+    for tool in tools_check:
+        if tool.get("responsible_id") == user_id:
+            print(f"Инструмент закреплён: {tool.get('name')} (ID: {tool.get('id')}) за {user_id}")
+
     await query.edit_message_text(
         f"Привет, {name}! Ты зарегистрирован как {display_role}.\n"
         f"На тебя закреплено {assigned_count} инструмент(ов)."
