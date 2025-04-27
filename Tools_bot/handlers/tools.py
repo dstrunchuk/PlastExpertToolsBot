@@ -81,8 +81,8 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         buttons = []
         seen = set()
         for person in foremen:
-            if person["name"] not in seen:
-                buttons.append([InlineKeyboardButton(person["name"], callback_data=f"start_transfer:{tool_id}:{person['id']}")])
+            if person["name"] not in seen and person["role"] != "Супервайзер":
+                buttons.append([InlineKeyboardButton(person["name"], callback_data=f"confirm_transfer:{tool_id}:{person['id']}")])
                 seen.add(person["name"])
         buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
         await query.edit_message_text("Кому передать инструмент?", reply_markup=InlineKeyboardMarkup(buttons))
@@ -128,7 +128,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         buttons = []
         seen = set()
         for person in foremen:
-            if person["name"] not in seen:
+            if person["name"] not in seen and person["role"] != "Супервайзер":
                 buttons.append([InlineKeyboardButton(person["name"], callback_data=f"confirm_assign:{tool_id}:{person['id']}")])
                 seen.add(person["name"])
         buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])

@@ -36,7 +36,7 @@ async def show_registration_menu(update: Update):
     foremen = await get_all_foremen()
 
     # Убираем всех, у кого имя Admin
-    foremen = [f for f in foremen if f["name"] != "Admin"]
+    foremen = [f for f in foremen if f["role"] != "Супервайзер"]
 
     # Оставляем только уникальные имена
     unique_names = {}
