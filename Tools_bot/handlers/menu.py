@@ -1,11 +1,9 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 import os
-from handlers.database import get_all_tools
+from handlers.database import get_all_tools, get_user_by_id, get_all_foremen
 import pandas as pd
 from telegram import InputFile
-
-from handlers.database import get_user_by_id
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
