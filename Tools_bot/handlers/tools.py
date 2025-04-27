@@ -82,10 +82,46 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         seen = set()
         for person in foremen:
             if person["name"] not in seen:
-                buttons.append([InlineKeyboardButton(person["name"], callback_data=f"confirm_transfer:{tool_id}:{person['id']}")])
+                buttons.append([InlineKeyboardButton(person["name"], callback_data=f"start_transfer:{tool_id}:{person['id']}")])
                 seen.add(person["name"])
         buttons.append([InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")])
         await query.edit_message_text("Кому передать инструмент?", reply_markup=InlineKeyboardMarkup(buttons))
+
+    elif action == "start_transfer":
+        _, tool_id, target_id = parts
+        target_id = int(target_id)
+
+        try:
+            await context.bot.send_message(
+                chat_id=target_id,
+                text=f"🔔 Вам хотят передать инструмент: {tool['name']} (ID: {tool.get('id')}). Нажмите ниже, чтобы принять.",
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("✅ Принять инструмент", callback_data=f"confirm_accept:{tool_id}:{user_id}")]
+                ])
+            )
+            await query.edit_message_text("Запрос на передачу отправлен. Ждем подтверждения.")
+
+        # Сохраняем в память pending_transfer
+            context.bot_data.setdefault("pending_transfers", {})[tool_id] = {
+                "from_user_id": user_id,
+                "to_user_id": target_id,
+                "timestamp": datetime.now().isoformat()
+            }
+
+        # Планируем напоминание через 1 час
+            await context.job_queue.run_once(
+                schedule_transfer_reminder,
+                when=3600,
+                data={
+                    "to_user_id": target_id,
+                    "tool_name": tool["name"],
+                    "tool_id": tool["id"]
+                }
+            )
+
+        except Exception as e:
+            print(f"Ошибка при отправке передачи: {e}")
+            await query.edit_message_text("Не удалось отправить запрос на передачу.")
 
     elif action == "assign":
         foremen = await get_all_foremen()
@@ -134,6 +170,56 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.edit_message_text("Неизвестное действие.", reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
         ]))
+
+async def confirm_accept_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    parts = query.data.split(":")
+    tool_id = parts[1]
+    from_user_id = int(parts[2])
+    accepting_user_id = query.from_user.id
+
+    pending_transfers = context.bot_data.get("pending_transfers", {})
+
+    transfer_info = pending_transfers.get(tool_id)
+    if not transfer_info:
+        await query.edit_message_text("Передача не найдена или уже подтверждена.")
+        return
+
+    if transfer_info["to_user_id"] != accepting_user_id:
+        await query.edit_message_text("Вы не можете принять эту передачу.")
+        return
+
+    # Обновляем владельца
+    tool = await get_tool_by_id(tool_id)
+    if tool:
+        new_user = await get_user_by_id(accepting_user_id)
+        tool["responsible"] = new_user["name"]
+        tool["responsible_id"] = new_user["id"]
+        await update_tool(tool)
+        await log_action(accepting_user_id, "Принял инструмент", tool)
+
+        # Удаляем из pending
+        del pending_transfers[tool_id]
+
+        await query.edit_message_text(f"Вы успешно приняли инструмент: {tool['name']}.")
+    else:
+        await query.edit_message_text("Инструмент не найден.")
+
+async def schedule_transfer_reminder(context: ContextTypes.DEFAULT_TYPE):
+    job_data = context.job.data
+    to_user_id = job_data["to_user_id"]
+    tool_name = job_data["tool_name"]
+    tool_id = job_data["tool_id"]
+
+    try:
+        await context.bot.send_message(
+            chat_id=to_user_id,
+            text=f"⏰ Напоминание: Вы не подтвердили приём инструмента: {tool_name} (ID: {tool_id}). Пожалуйста, подтвердите!"
+        )
+    except Exception as e:
+        print(f"Ошибка при отправке напоминания: {e}")
 
 async def update_tool_card(query, tool: dict, user_id: int):
     users = await get_all_users()
