@@ -16,7 +16,7 @@ from handlers.menu import (
     add_object_handler,
 )
 from handlers.start import start_command, handle_registration
-from handlers.database import init_db
+from handlers.database import init_db, connect_db
 from dotenv import load_dotenv
 import os
 
