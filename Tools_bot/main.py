@@ -14,12 +14,15 @@ from handlers.menu import (
     show_main_menu,
     add_foreman_handler,
     add_object_handler,
+    foremen_list_handler,
+    show_foreman_tools_handler,
 )
 from handlers.start import start_command, handle_registration
 from handlers.database import (   # <<< Важно: вот так теперь!
     get_all_tools, get_tool_by_id, update_tool, log_action,
     get_all_foremen, get_all_users, get_tool_history,
     get_user_by_id, save_user, add_foreman_if_missing, update_foreman_id, add_tool
+    
 )
 from dotenv import load_dotenv
 import os
