@@ -37,7 +37,10 @@ async def save_user(user):
 # Получение пользователя по ID
 async def get_user_by_id(user_id):
     response = supabase.table("users").select("*").eq("id", user_id).maybe_single().execute()
-    return response.data if response.data else None
+    if response and hasattr(response, "data") and response.data:
+        return response.data
+    else:
+        return None
 
 # Получение всех прорабов
 async def get_all_foremen():
