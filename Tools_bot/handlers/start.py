@@ -90,6 +90,13 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     if found_user and not found_user.get("id"):
         await update_foreman_id(name, user_id)
 
+    # Ищем все инструменты, где responsible совпадает с его именем
+    tools = await get_all_tools()
+    for tool in tools:
+        if tool.get("responsible") == name:
+            tool["responsible_id"] = user_id
+            await update_tool(tool)
+
     await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {display_role}.")
     await show_main_menu(update, context)
 
