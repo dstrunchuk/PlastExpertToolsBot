@@ -273,7 +273,12 @@ async def show_foreman_tools_handler(update: Update, context: ContextTypes.DEFAU
     user_tools = [tool for tool in tools if tool.get("responsible_id") == foreman_id]
 
     if not user_tools:
-        await query.edit_message_text("У этого ответственного нет инструментов.")
+        await query.edit_message_text(
+            "У этого ответственного нет инструментов.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+            ])
+        )
         return
 
     message = f"Инструменты ответственного:\n\n"
