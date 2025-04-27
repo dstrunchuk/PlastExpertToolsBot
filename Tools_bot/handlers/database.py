@@ -1,5 +1,4 @@
 from supabase import create_client, Client
-from app.handlers.database import supabase
 import os
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
