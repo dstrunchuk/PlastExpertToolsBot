@@ -4,6 +4,11 @@ import json
 from datetime import datetime
 
 DB_PATH = "database.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+async def connect_db():
+    pool = await asyncpg.create_pool(DATABASE_URL)
+    return pool
 
 async def init_db():
     async with aiosqlite.connect(DB_PATH) as db:
