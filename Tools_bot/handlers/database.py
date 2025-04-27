@@ -29,7 +29,10 @@ async def save_user(user):
 
 async def get_user_by_id(user_id):
     response = supabase.table("users").select("*").eq("id", user_id).maybe_single().execute()
-    return response.data
+    if response and response.data:
+        return response.data
+    else:
+        return None
 
 async def get_all_foremen():
     data = supabase.table("foremen").select("*").execute()

@@ -9,7 +9,7 @@ ADMIN_ID = 987664835  # Твой ID админа
 # /start команда
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    user = await get_user_by_id( user_id)
+    user = await get_user_by_id(user_id)
 
     if user:
         if user_id == ADMIN_ID:
@@ -19,7 +19,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await send_message(update, "Вы уже зарегистрированы.")
             await show_main_menu(update, context)
         return
-
+    
+    # Пользователя нет — создаём
+    await create_user(user_id)
+    await send_message(update, "Вы успешно зарегистрированы!")
     await show_registration_menu(update)
 
 # Отправка сообщения или изменение сообщения
@@ -90,3 +93,6 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {display_role}.")
     await show_main_menu(update, context)
+
+async def create_user(user_id):
+    await supabase.table("users").insert({"id": user_id}).execute()
