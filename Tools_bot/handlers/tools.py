@@ -7,11 +7,6 @@ from datetime import datetime
 from handlers.database import get_tool_by_id, update_tool, log_action, get_all_foremen, get_all_users, get_all_tools, get_tool_history, get_user_by_id
 import re
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
-TOOLS_PATH = os.path.join(DATA_DIR, "tools.json")
-USERS_PATH = os.path.join(DATA_DIR, "users.json")
-FOREMEN_PATH = os.path.join(DATA_DIR, "foremen.json")
-PENDING_PATH = os.path.join(DATA_DIR, "pending.json")
 
 def load_json(path):
     if not os.path.exists(path):
