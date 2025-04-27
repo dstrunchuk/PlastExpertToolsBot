@@ -28,8 +28,8 @@ async def save_user(user):
     supabase.table("users").upsert(user).execute()
 
 async def get_user_by_id(user_id):
-    data = supabase.table("users").select("*").eq("id", user_id).single().execute()
-    return data.data
+    response = supabase.table("users").select("*").eq("id", user_id).maybe_single().execute()
+    return response.data
 
 async def get_all_foremen():
     data = supabase.table("foremen").select("*").execute()
