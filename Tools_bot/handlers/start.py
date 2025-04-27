@@ -10,24 +10,18 @@ ADMIN_ID = 987664835  # Твой ID админа
 # /start команда
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    user_name = update.effective_user.full_name  # Получаем имя пользователя
 
     # Проверяем, существует ли уже пользователь в базе
     user = await get_user_by_id(user_id)
 
     if user:
-        if user_id == ADMIN_ID:
-            await send_message(update, "Вы зарегистрированы как админ. Можете выбрать роль снова.")
-            await show_registration_menu(update)
-        else:
-            await send_message(update, "Вы уже зарегистрированы.")
-            await show_main_menu(update, context)
+        # Если пользователь уже зарегистрирован
+        await send_message(update, "Вы уже зарегистрированы.")
+        await show_main_menu(update, context)
         return
     
-    # Пользователя нет — создаём
-    await create_user(user_id, user_name)
-    await save_user({"id": user_id, "name": user_name, "role": "Ответственный"})
-    await send_message(update, "Вы успешно зарегистрированы!")
+    # Пользователь НЕ найден — отправляем меню выбора имени
+    await send_message(update, "Добро пожаловать! Пожалуйста, выберите своё имя для регистрации.")
     await show_registration_menu(update)
 
 # Отправка сообщения или изменение сообщения
