@@ -1,99 +1,142 @@
-import asyncpg
+import aiosqlite
 import os
+import json
 from datetime import datetime
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DB_PATH = "database.db"
 
-# Создание пула подключений
-async def connect_db():
-    pool = await asyncpg.create_pool(DATABASE_URL)
-    return pool
+async def init_db():
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS tools (
+                id TEXT PRIMARY KEY,
+                name TEXT,
+                object TEXT,
+                responsible TEXT,
+                responsible_id INTEGER
+            )
+        """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY,
+                name TEXT,
+                role TEXT
+            )
+        """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS pending (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT,
+                user_id INTEGER,
+                action TEXT,
+                tool_id TEXT,
+                tool_name TEXT,
+                object TEXT,
+                responsible TEXT
+            )
+        """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS foremen (
+                id INTEGER,
+                name TEXT,
+                role TEXT
+            )
+        """)
+        await db.commit()
 
-# Получение всех инструментов
-async def get_all_tools(pool):
-    async with pool.acquire() as connection:
-        rows = await connection.fetch("SELECT id, name, object, responsible, responsible_id FROM tools")
-        return [dict(row) for row in rows]
+async def get_all_tools():
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("SELECT id, name, object, responsible, responsible_id FROM tools")
+        rows = await cursor.fetchall()
+        return [dict(zip(["id", "name", "object", "responsible", "responsible_id"], row)) for row in rows]
 
-# Получение одного инструмента по ID
-async def get_tool_by_id(pool, tool_id):
-    async with pool.acquire() as connection:
-        row = await connection.fetchrow(
-            "SELECT id, name, object, responsible, responsible_id FROM tools WHERE id = $1", tool_id
+async def get_tool_by_id(tool_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("SELECT id, name, object, responsible, responsible_id FROM tools WHERE id = ?", (tool_id,))
+        row = await cursor.fetchone()
+        if row:
+            return {
+                "id": row[0],
+                "name": row[1],
+                "object": row[2],
+                "responsible": row[3],
+                "responsible_id": row[4]
+            }
+        return None
+
+async def update_tool(tool):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "UPDATE tools SET name = ?, object = ?, responsible = ?, responsible_id = ? WHERE id = ?",
+            (tool["name"], tool["object"], tool.get("responsible"), tool.get("responsible_id"), tool["id"])
         )
-        return dict(row) if row else None
+        await db.commit()
 
-# Добавление нового инструмента
-async def add_tool(pool, tool):
-    async with pool.acquire() as connection:
-        await connection.execute(
-            "INSERT INTO tools (id, name, object, responsible, responsible_id) VALUES ($1, $2, $3, $4, $5)",
-            tool["id"], tool["name"], tool["object"], tool.get("responsible"), tool.get("responsible_id")
+async def get_all_users():
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("SELECT id, name, role FROM users")
+        rows = await cursor.fetchall()
+        return [dict(zip(["id", "name", "role"], row)) for row in rows]
+
+async def save_user(user):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT OR REPLACE INTO users (id, name, role) VALUES (?, ?, ?)",
+            (user["id"], user["name"], user["role"])
         )
+        await db.commit()
 
-# Обновление существующего инструмента
-async def update_tool(pool, tool):
-    async with pool.acquire() as connection:
-        await connection.execute(
-            "UPDATE tools SET name = $1, object = $2, responsible = $3, responsible_id = $4 WHERE id = $5",
-            tool["name"], tool["object"], tool.get("responsible"), tool.get("responsible_id"), tool["id"]
+async def get_user_by_id(user_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("SELECT id, name, role FROM users WHERE id = ?", (user_id,))
+        row = await cursor.fetchone()
+        if row:
+            return {"id": row[0], "name": row[1], "role": row[2]}
+        return None
+
+async def get_all_foremen():
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("SELECT id, name, role FROM foremen")
+        rows = await cursor.fetchall()
+        return [dict(zip(["id", "name", "role"], row)) for row in rows]
+
+async def add_foreman_if_missing(name, role, user_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT INTO foremen (id, name, role) VALUES (?, ?, ?)",
+            (user_id, name, role)
         )
+        await db.commit()
 
-# Получение всех пользователей
-async def get_all_users(pool):
-    async with pool.acquire() as connection:
-        rows = await connection.fetch("SELECT id, name, role FROM users")
-        return [dict(row) for row in rows]
-
-# Сохранение пользователя (добавить или обновить)
-async def save_user(pool, user):
-    async with pool.acquire() as connection:
-        await connection.execute(
-            "INSERT INTO users (id, name, role) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, role = EXCLUDED.role",
-            user["id"], user["name"], user["role"]
+async def update_foreman_id(name, user_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "UPDATE foremen SET id = ? WHERE name = ?",
+            (user_id, name)
         )
+        await db.commit()
 
-# Получение пользователя по ID
-async def get_user_by_id(pool, user_id):
-    async with pool.acquire() as connection:
-        row = await connection.fetchrow("SELECT id, name, role FROM users WHERE id = $1", user_id)
-        return dict(row) if row else None
+async def log_action(user_id, action, tool):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("""
+            INSERT INTO pending (timestamp, user_id, action, tool_id, tool_name, object, responsible)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            datetime.now().isoformat(),
+            user_id,
+            action,
+            tool.get("id"),
+            tool.get("name"),
+            tool.get("object"),
+            tool.get("responsible")
+        ))
+        await db.commit()
 
-# Получение всех прорабов
-async def get_all_foremen(pool):
-    async with pool.acquire() as connection:
-        rows = await connection.fetch("SELECT id, name, role FROM foremen")
-        return [dict(row) for row in rows]
-
-# Добавление нового прораба (если нет)
-async def add_foreman_if_missing(pool, name, role, user_id):
-    async with pool.acquire() as connection:
-        await connection.execute(
-            "INSERT INTO foremen (id, name, role) VALUES ($1, $2, $3)",
-            user_id, name, role
+async def get_tool_history(tool_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute(
+            "SELECT timestamp, user_id, action, tool_name, object, responsible FROM pending WHERE tool_id = ? ORDER BY timestamp DESC",
+            (tool_id,)
         )
-
-# Обновление ID у прораба
-async def update_foreman_id(pool, name, user_id):
-    async with pool.acquire() as connection:
-        await connection.execute(
-            "UPDATE foremen SET id = $1 WHERE name = $2",
-            user_id, name
-        )
-
-# Логирование действий с инструментом
-async def log_action(pool, user_id, action, tool):
-    async with pool.acquire() as connection:
-        await connection.execute(
-            "INSERT INTO pending (timestamp, user_id, action, tool_id, tool_name, object, responsible) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-            datetime.now().isoformat(), user_id, action, tool.get("id"), tool.get("name"), tool.get("object"), tool.get("responsible")
-        )
-
-# Получение истории по инструменту
-async def get_tool_history(pool, tool_id):
-    async with pool.acquire() as connection:
-        rows = await connection.fetch(
-            "SELECT timestamp, user_id, action, tool_name, object, responsible FROM pending WHERE tool_id = $1 ORDER BY timestamp DESC",
-            tool_id
-        )
-        return [dict(row) for row in rows]
+        rows = await cursor.fetchall()
+        return [dict(zip(["timestamp", "user_id", "action", "tool_name", "object", "responsible"], row)) for row in rows]

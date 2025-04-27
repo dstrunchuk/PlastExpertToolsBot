@@ -1,21 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (
-    ContextTypes,
-    ApplicationBuilder,
-    CommandHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    filters
-)
-from handlers.tools import (
-    handle_view_tool,
-    handle_view_tool_by_index,
-    handle_tool_action,
-    process_tool_id,
-    export_one_tool_history,
-    search_prev,
-    search_next
-)
+from telegram.ext import ContextTypes, ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+from handlers.tools import handle_view_tool, handle_view_tool_by_index, handle_tool_action, process_tool_id, export_one_tool_history, search_prev, search_next
 from handlers.menu import (
     find_tool_handler,
     all_tools_handler,
@@ -28,14 +13,12 @@ from handlers.menu import (
     export_all_handler,
     show_main_menu,
     add_foreman_handler,
-    add_object_handler
+    add_object_handler,
 )
 from handlers.start import start_command, handle_registration
-from handlers.database import connect_db
+from handlers.database import init_db, migrate_json_to_db, seed_foremen
 from dotenv import load_dotenv
 import os
-
-pool = None
 
 # Инициализация бота
 load_dotenv()
@@ -44,26 +27,25 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Прописан в .env
 
 async def on_startup(app):
-    global pool
-    pool = await connect_db()
-    print("✅ База данных подключена через pool!")
+    await init_db()
+    await migrate_json_to_db()
+    await seed_foremen()
+    await app.bot.set_webhook(WEBHOOK_URL)
+    print("✅ База и бот готовы!")
 
-# Создание приложения
 app = ApplicationBuilder().token(BOT_TOKEN).post_init(on_startup).build()
 
-# Хендлеры команд
+# Хендлеры
 app.add_handler(CommandHandler("start", start_command))
-
-# Кнопки
 app.add_handler(CallbackQueryHandler(find_tool_handler, pattern="^find_tool$"))
 app.add_handler(CallbackQueryHandler(all_tools_handler, pattern="^all_tools$"))
 app.add_handler(CallbackQueryHandler(search_prev, pattern="^search_prev$"))
 app.add_handler(CallbackQueryHandler(search_next, pattern="^search_next$"))
 app.add_handler(CallbackQueryHandler(all_tools_prev, pattern="^all_tools_prev$"))
 app.add_handler(CallbackQueryHandler(all_tools_next, pattern="^all_tools_next$"))
-app.add_handler(CallbackQueryHandler(my_tools_handler, pattern="^my_tools$"))
 app.add_handler(CallbackQueryHandler(my_tools_prev, pattern="^my_tools_prev$"))
 app.add_handler(CallbackQueryHandler(my_tools_next, pattern="^my_tools_next$"))
+app.add_handler(CallbackQueryHandler(my_tools_handler, pattern="^my_tools$"))
 app.add_handler(CallbackQueryHandler(add_tool_handler, pattern="^add_tool$"))
 app.add_handler(CallbackQueryHandler(export_all_handler, pattern="^export_all$"))
 app.add_handler(CallbackQueryHandler(export_one_tool_history, pattern="^export_one:"))
@@ -74,11 +56,9 @@ app.add_handler(CallbackQueryHandler(handle_view_tool, pattern="^view_tool:"))
 app.add_handler(CallbackQueryHandler(handle_view_tool_by_index, pattern="^view_tool_by_index:"))
 app.add_handler(CallbackQueryHandler(handle_registration, pattern="^register:"))
 app.add_handler(CallbackQueryHandler(handle_tool_action, pattern="^(take|store|request|transfer|assign|export|confirm_transfer|confirm_assign):"))
-
-# Обычные текстовые сообщения
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_tool_id))
 
-# Запуск приложения через WebHook
+# Запуск бота через WebHook
 print("Бот запущен через WebHook.")
 app.run_webhook(
     listen="0.0.0.0",
