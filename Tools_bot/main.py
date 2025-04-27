@@ -27,8 +27,9 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Прописан в .env
 
 async def on_startup(app):
-    await init_db()
-    app.bot_data["pool"] = pool
+    pool = await connect_db()            # создаём соединение с базой
+    app.bot_data["pool"] = pool           # кладём pool в bot_data
+    await init_db(pool)                  # передаем pool в init_db
     await app.bot.set_webhook(WEBHOOK_URL)
     print("✅ База и бот готовы!")
 
