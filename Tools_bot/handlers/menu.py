@@ -5,6 +5,7 @@ from handlers.database import get_all_tools, get_user_by_id, get_all_foremen
 import pandas as pd
 from telegram import InputFile
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+import re
 
 async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -77,10 +78,10 @@ async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     message = "Ваши инструменты:\n\n"
     for tool in current_tools:
-        name = tool.get("name", "Без названия")
-        tool_id = tool.get("id", "Без ID")
-        responsible = tool.get("responsible", "Никто")
-        object_name = tool.get("object", "Не указан")
+        name = escape_markdown(tool.get("name", "Без названия"))
+        tool_id = escape_markdown(str(tool.get("id", "Без ID")))
+        responsible = escape_markdown(tool.get("responsible", "Никто"))
+        object_name = escape_markdown(tool.get("object", "Не указан"))
         message += (f"*Название:* {name}\n"
                     f"*ID:* {tool_id}\n"
                     f"*Объект:* {object_name}\n"
