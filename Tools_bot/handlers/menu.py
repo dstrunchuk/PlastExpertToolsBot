@@ -5,7 +5,6 @@ import json
 from handlers.tools import load_json, TOOLS_PATH, export_pending_to_excel
 from handlers.database import get_all_tools
 import pandas as pd
-import aiosqlite
 from telegram import InputFile
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
