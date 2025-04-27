@@ -1,7 +1,7 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from handlers.menu import show_main_menu
-from handlers.database import get_user_by_id, save_user, get_all_foremen, update_foreman_id, add_foreman_if_missing
+from handlers.database import get_user_by_id, save_user, get_all_foremen, update_foreman_id, add_foreman_if_missing, create_user
 import os
 
 ADMIN_ID = 987664835  # Твой ID админа
@@ -34,7 +34,7 @@ async def send_message(update: Update, text: str):
 
 # Меню выбора имени
 async def show_registration_menu(update: Update):
-    foremen = await get_all_foremen(pool)
+    foremen = await get_all_foremen()
 
     # Убираем всех, у кого имя Admin
     foremen = [f for f in foremen if f["name"] != "Admin"]
@@ -94,5 +94,3 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     await query.edit_message_text(f"Привет, {name}! Ты зарегистрирован как {display_role}.")
     await show_main_menu(update, context)
 
-async def create_user(user_id):
-    await supabase.table("users").insert({"id": user_id}).execute()

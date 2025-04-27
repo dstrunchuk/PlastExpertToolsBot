@@ -1,10 +1,11 @@
-from supabase import create_client
+from supabase import create_client, Client
+from app.handlers.database import supabase
 import os
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 async def get_all_tools():
     data = supabase.table("tools").select("*").execute()
@@ -62,3 +63,6 @@ async def log_action(user_id, action, tool):
 async def get_tool_history(tool_id):
     data = supabase.table("pending").select("*").eq("tool_id", tool_id).order("timestamp", desc=True).execute()
     return data.data
+
+async def create_user(user_id):
+    await supabase.table("users").insert({"id": user_id}).execute()
