@@ -23,7 +23,7 @@ async def add_tool(tool):
 
 # Обновление существующего инструмента
 async def update_tool(tool):
-    supabase.table("tools").update(tool).eq("id", tool["id"]).execute()
+    await supabase.table("tools").update(tool).eq("id", tool["id"]).execute()
 
 # Получение всех пользователей
 async def get_all_users():
