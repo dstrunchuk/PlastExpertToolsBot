@@ -329,7 +329,10 @@ async def send_search_results(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     message = "Найденные инструменты:\n\n"
     for idx, tool in enumerate(current_tools, start=start+1):
-        message += f"{idx}. {tool.get('name', 'Без названия')} (ID: {tool.get('id', 'Нет ID')})\n"
+        name = tool.get('name', 'Без названия')
+        tool_id = tool.get('id', 'Нет ID')
+        responsible = tool.get('responsible', 'Никто')
+        message += f"{idx}. {name} (ID: {tool_id}) — Ответственный: {responsible}\n"
 
     navigation_buttons = []
     if start > 0:

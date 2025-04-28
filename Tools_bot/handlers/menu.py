@@ -20,7 +20,7 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     buttons = []
 
-    if role in ["Супервайзер", "Шеф", "Босс"]:
+    if role in ["Супервайзер", "Boss"]:
         buttons = [
             [InlineKeyboardButton("🔍 Найти инструмент", callback_data="find_tool")],
             [InlineKeyboardButton("🔨 Мои инструменты", callback_data="my_tools")],
