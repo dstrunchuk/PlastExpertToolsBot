@@ -227,7 +227,7 @@ async def update_tool_card(query, tool: dict, user_id: int):
     role = user.get("role", "Ответственный") if user else "Ответственный"
 
     text = create_tool_card_text(tool)
-    buttons = generate_action_buttons(tool, role)
+    buttons = generate_action_buttons(tool, role, user_id)
     reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
 
     await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=reply_markup)
@@ -248,8 +248,8 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if find_prompt_id:
         try:
             await update.effective_chat.delete_message(find_prompt_id)
-        except:
-            pass
+        except Exception as e:
+            print(f"Не удалось удалить find_prompt сообщение: {e}")
 
     # Удаляем сообщение пользователя
     try:
@@ -269,7 +269,7 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         # генерируем только действия без добавления кнопки "Главное меню"
-        buttons = generate_action_buttons(exact_tool, role)
+        buttons = generate_action_buttons(exact_tool, role, user_id)
 
         # Добавляем "История"
         buttons.insert(0, [InlineKeyboardButton("🗂 История", callback_data=f"export_one:{exact_tool.get('id')}")])
@@ -410,7 +410,7 @@ async def handle_view_tool(update: Update, context: ContextTypes.DEFAULT_TYPE):
     role = user.get("role", "Ответственный") if user else "Ответственный"
 
     text = create_tool_card_text(tool)
-    buttons = generate_action_buttons(tool, role)
+    buttons = generate_action_buttons(tool, role, user_id)
     reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
 
     await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=reply_markup)
@@ -434,19 +434,19 @@ async def handle_view_tool_by_index(update: Update, context: ContextTypes.DEFAUL
     role = user.get("role", "Ответственный") if user else "Ответственный"
 
     text = create_tool_card_text(tool)
-    buttons = generate_action_buttons(tool, role)
+    buttons = generate_action_buttons(tool, role, user_id)
     reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
 
     await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=reply_markup)
 
-def generate_action_buttons(tool: dict, role: str):
+def generate_action_buttons(tool: dict, role: str, user_id: int):
     buttons = []
     responsible_id = tool.get("responsible_id")
 
     if role in ["Ответственный", "Админ"]:
         if not responsible_id:
             buttons.append([InlineKeyboardButton("✅ Стать ответственным", callback_data=f"take:{tool['id']}")])
-        elif responsible_id and responsible_id == tool.get("responsible_id"):
+        elif responsible_id == user_id:
             buttons.append([InlineKeyboardButton("📤 Передать", callback_data=f"transfer:{tool['id']}")])
             buttons.append([InlineKeyboardButton("🏬 Оставить на складе", callback_data=f"store:{tool['id']}")])
         else:
