@@ -118,9 +118,11 @@ async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
     ]
     
-    sent_message = await update.callback_query.message.reply_text(
+    await update.callback_query.edit_message_text(
         "Введи ID или название инструмента:",
-        reply_markup=InlineKeyboardMarkup(buttons)
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
+        ])
     )
     
     context.user_data["find_prompt_message_id"] = sent_message.message_id
