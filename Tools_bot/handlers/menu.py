@@ -114,9 +114,6 @@ async def my_tools_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
     
-    buttons = [
-        [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
-    ]
     
     await update.callback_query.edit_message_text(
         "Введи ID или название инструмента:",
