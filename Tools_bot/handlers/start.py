@@ -36,7 +36,7 @@ async def show_registration_menu(update: Update):
     foremen = await get_all_foremen()
 
     # Убираем всех, у кого имя Admin
-    foremen = [f for f in foremen if f["role"] != "Супервайзер"]
+    foremen = [f for f in foremen if not f.get("id")]
 
     # Оставляем только уникальные имена
     unique_names = {}
@@ -98,7 +98,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     for tool in tools:
         responsible = tool.get("responsible")
         if responsible and responsible.strip().lower() == name.strip().lower() and not tool.get("responsible_id"):
-            tool["responsible_id"] = user_id
+            not tool.get("responsible_id")
             await update_tool(tool)
             assigned_count += 1
 
