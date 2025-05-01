@@ -104,7 +104,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         print(f"[?] Сравниваю: '{responsible.strip().lower()}' == '{name.strip().lower()}'")
 
-        if responsible.strip().lower() == name.strip().lower() and not tool.get("responsible_id"):
+        if responsible.strip().lower() == name.strip().lower() and not str(tool.get("responsible_id")).strip():
             tool["responsible_id"] = user_id
             print(f"[>>] Привязываю {tool.get('name')} → user_id {user_id}")
             try:
