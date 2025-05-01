@@ -23,9 +23,24 @@ async def add_tool(tool):
 
 # Обновление существующего инструмента
 async def update_tool(tool):
-    await supabase.table("tools").update({
-        "responsible_id": tool["responsible_id"]
-    }).eq("id", tool["id"]).execute()
+    try:
+        if tool.get("id"):
+            response = await supabase.table("tools").update({
+                "responsible_id": tool["responsible_id"]
+            }).eq("id", tool["id"]).execute()
+            context = f"по ID {tool['id']}"
+        else:
+            response = await supabase.table("tools").update({
+                "responsible_id": tool["responsible_id"]
+            }).eq("name", tool["name"]).execute()
+            context = f"по имени '{tool['name']}'"
+
+        if response.data:
+            print(f"Обновлён инструмент {context}: {response.data}")
+        else:
+            print(f"[!] Ничего не обновилось для инструмента {context}")
+    except Exception as e:
+        print(f"[Ошибка Supabase при обновлении инструмента] {e}")
 
 # Получение всех пользователей
 async def get_all_users():
