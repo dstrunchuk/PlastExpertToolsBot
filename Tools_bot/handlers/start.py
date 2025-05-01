@@ -55,10 +55,19 @@ async def show_registration_menu(update: Update):
 
 # Обработка выбора имени
 async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print(">>> handle_registration вызван")
+
     query = update.callback_query
     await query.answer()
+
     user_id = query.from_user.id
-    name = query.data.split(":")[1]
+    try:
+        name = query.data.split(":")[1]
+    except Exception as e:
+        print(f"[!] Ошибка извлечения имени из callback_data: {query.data} — {e}")
+        return
+
+    print(f"[+] Имя из кнопки: {name} (user_id: {user_id})")
 
     foremen = await get_all_foremen()
     found_user = next((f for f in foremen if f["name"] == name), None)
@@ -70,34 +79,45 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         role = "Ответственный"
         display_role = "ответственный"
 
+    print(f"[+] Зарегистрирован как: {role}")
+
     await save_user({
         "id": user_id,
         "name": name,
         "role": role
     })
+    print(f"[+] Пользователь сохранён в users")
 
     # Обновляем foremen только если id ещё не проставлен
     if found_user and not found_user.get("id"):
+        print(f"[~] Обновляю foremen id для {name}")
         await update_foreman_id(name, user_id)
 
     # Ищем все инструменты, где responsible совпадает с его именем И НЕТ responsible_id
     assigned_count = 0
-
-    # Используем выбранное имя из кнопки, а не имя в Telegram!
     tools = await get_all_tools()
+
     for tool in tools:
         responsible = tool.get("responsible")
-        print(f"[Проверка имени] '{responsible.strip().lower()}' == '{name.strip().lower()}'")
-        if responsible and responsible.strip().lower() == name.strip().lower() and not tool.get("responsible_id", None):
-            tool["responsible_id"] = user_id  # <== вот это нужно!
-            await update_tool(tool)
-            assigned_count += 1
+        if not responsible:
+            continue
 
-    # После обновления всех инструментов — проверка через вывод
+        print(f"[?] Сравниваю: '{responsible.strip().lower()}' == '{name.strip().lower()}'")
+
+        if responsible.strip().lower() == name.strip().lower() and not tool.get("responsible_id"):
+            tool["responsible_id"] = user_id
+            print(f"[>>] Привязываю {tool.get('name')} → user_id {user_id}")
+            try:
+                await update_tool(tool)
+                assigned_count += 1
+            except Exception as e:
+                print(f"[!] Ошибка при update_tool: {e}")
+
+    # Повторная проверка
     tools_check = await get_all_tools()
     for tool in tools_check:
         if tool.get("responsible_id") == user_id:
-            print(f"Инструмент закреплён: {tool.get('name')} (ID: {tool.get('id')}) за {user_id}")
+            print(f"[OK] Инструмент закреплён: {tool.get('name')} (ID: {tool.get('id')})")
 
     try:
         await query.edit_message_text(
