@@ -23,7 +23,7 @@ async def add_tool(tool):
 
 # Обновление существующего инструмента
 async def update_tool(tool):
-    supabase.table("tools").update({
+    await supabase.table("tools").update({
         "responsible_id": tool["responsible_id"]
     }).eq("id", tool["id"]).execute()
 
