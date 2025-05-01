@@ -4,5 +4,5 @@ pandas
 openpyxl
 httpx
 asyncpg
-supabase
+supabase-py>=2.0.0
 aiosqlite
