@@ -4,8 +4,6 @@ from handlers.menu import show_main_menu
 from handlers.database import get_user_by_id, save_user, get_all_foremen, update_foreman_id, add_foreman_if_missing, create_user, get_all_tools, update_tool
 import os
 
-ADMIN_ID = 987664835  # Твой ID админа
-
 # /start команда
 # /start команда
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -44,14 +42,11 @@ async def show_registration_menu(update: Update):
         unique_names[f["name"]] = f
 
     # Готовим список для кнопок
-    users_data = [{"name": "Admin", "role": "Супервайзер", "id": ADMIN_ID}] + list(unique_names.values())
+    users_data = list(unique_names.values())  # Без "Admin"
 
     buttons = []
     for user in users_data:
-        if user["name"] == "Admin" and update.effective_user.id == ADMIN_ID:
-            buttons.append([InlineKeyboardButton(f"{user['name']} (Вы)", callback_data=f"register:{user['name']}")])
-        else:
-            buttons.append([InlineKeyboardButton(user['name'], callback_data=f"register:{user['name']}")])
+        buttons.append([InlineKeyboardButton(user['name'], callback_data=f"register:{user['name']}")])
 
     await update.message.reply_text(
         "Выбери своё имя для регистрации:",
@@ -68,18 +63,13 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     foremen = await get_all_foremen()
     found_user = next((f for f in foremen if f["name"] == name), None)
 
-    if name == "Admin" and user_id == ADMIN_ID:
-        role = "Супервайзер"
-        display_role = "супервайзер"
-        name = update.effective_user.full_name
-    elif found_user:
+    if found_user:
         role = found_user["role"]
         display_role = "супервайзер" if role == "Супервайзер" else "ответственный"
     else:
         role = "Ответственный"
         display_role = "ответственный"
 
-    # Сохраняем пользователя
     await save_user({
         "id": user_id,
         "name": name,
@@ -98,7 +88,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     for tool in tools:
         responsible = tool.get("responsible")
         if responsible and responsible.strip().lower() == name.strip().lower() and not tool.get("responsible_id"):
-            not tool.get("responsible_id")
+            tool["responsible_id"] = user_id  # ЭТО ОЧЕНЬ ВАЖНО!
             await update_tool(tool)
             assigned_count += 1
 
