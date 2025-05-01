@@ -97,6 +97,10 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     assigned_count = 0
     tools = await get_all_tools()
 
+    print("[~] Запрашиваю инструменты через get_all_tools()...")
+    tools = await get_all_tools()
+    print(f"[~] Загружено инструментов: {len(tools)}")
+
     for tool in tools:
         responsible = tool.get("responsible")
         if not responsible:
