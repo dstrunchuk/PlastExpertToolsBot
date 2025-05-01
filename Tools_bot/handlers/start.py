@@ -19,7 +19,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     # Пользователь НЕ найден — отправляем меню выбора имени
-    
+    await send_message(update, "Добро пожаловать! Пожалуйста, выберите своё имя для регистрации.")
+    await show_registration_menu(update)
 
 # Отправка сообщения или изменение сообщения
 async def send_message(update: Update, text: str):
