@@ -55,8 +55,6 @@ async def show_registration_menu(update: Update):
 
 # Обработка выбора имени
 async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print(">>> handle_registration вызван")
-    print(f"Callback data: {query.data}")
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
