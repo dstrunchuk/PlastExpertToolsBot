@@ -55,6 +55,8 @@ async def show_registration_menu(update: Update):
 
 # Обработка выбора имени
 async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print(">>> handle_registration вызван")
+    print(f"Callback data: {query.data}")
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
@@ -87,6 +89,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     tools = await get_all_tools()
     for tool in tools:
         responsible = tool.get("responsible")
+        print(f"[Проверка имени] '{responsible.strip().lower()}' == '{name.strip().lower()}'")
         if responsible and responsible.strip().lower() == name.strip().lower() and not tool.get("responsible_id", None):
             tool["responsible_id"] = user_id  # <== вот это нужно!
             await update_tool(tool)
@@ -98,10 +101,13 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         if tool.get("responsible_id") == user_id:
             print(f"Инструмент закреплён: {tool.get('name')} (ID: {tool.get('id')}) за {user_id}")
 
-    await query.edit_message_text(
-        f"Привет, {name}! Ты зарегистрирован как {display_role}.\n"
-        f"На тебя закреплено {assigned_count} инструмент(ов)."
-    )
+    try:
+        await query.edit_message_text(
+            f"Привет, {name}! Ты зарегистрирован как {display_role}.\n"
+            f"На тебя закреплено {assigned_count} инструмент(ов)."
+        )
+    except Exception as e:
+        print(f"[!] Ошибка при выводе финального сообщения: {e}")
 
     await show_main_menu(update, context)
     
