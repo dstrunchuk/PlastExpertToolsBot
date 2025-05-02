@@ -56,8 +56,8 @@ async def get_all_users():
     return response.data if response.data else []
 
 # Сохранение пользователя (добавление или обновление)
-async def save_user(user):
-    await supabase.table("users").upsert(user).execute()
+def save_user(user):
+    supabase.table("users").upsert(user).execute()
 
 # Получение пользователя по ID
 async def get_user_by_id(user_id):
