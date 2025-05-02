@@ -12,7 +12,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 async def get_all_tools():
     print("[DB] get_all_tools вызван")
     try:
-        response = await supabase.table("tools").select("*").execute()
+        response = supabase.table("tools").select("*").execute()
         tools = response.data or []
         print(f"[DB] Получено инструментов: {len(tools)}")
         return tools
@@ -22,23 +22,23 @@ async def get_all_tools():
 
 # Получение одного инструмента по ID
 async def get_tool_by_id(tool_id):
-    response = await supabase.table("tools").select("*").eq("id", tool_id).maybe_single().execute()
+    response = supabase.table("tools").select("*").eq("id", tool_id).maybe_single().execute()
     return response.data if response.data else None
 
 # Добавление нового инструмента
 async def add_tool(tool):
-    await supabase.table("tools").insert(tool).execute()
+    supabase.table("tools").insert(tool).execute()
 
 # Обновление существующего инструмента
 async def update_tool(tool):
     try:
         if tool.get("id"):
-            response = await supabase.table("tools").update({
+            response = supabase.table("tools").update({
                 "responsible_id": tool["responsible_id"]
             }).eq("id", tool["id"]).execute()
             context = f"по ID {tool['id']}"
         else:
-            response = await supabase.table("tools").update({
+            response = supabase.table("tools").update({
                 "responsible_id": tool["responsible_id"]
             }).eq("name", tool["name"]).execute()
             context = f"по имени '{tool['name']}'"
@@ -52,7 +52,7 @@ async def update_tool(tool):
 
 # Получение всех пользователей
 async def get_all_users():
-    response = await supabase.table("users").select("*").execute()
+    response = supabase.table("users").select("*").execute()
     return response.data if response.data else []
 
 # Сохранение пользователя (добавление или обновление)
@@ -61,7 +61,7 @@ async def save_user(user):
 
 # Получение пользователя по ID
 async def get_user_by_id(user_id):
-    response = await supabase.table("users").select("*").eq("id", user_id).maybe_single().execute()
+    response = supabase.table("users").select("*").eq("id", user_id).maybe_single().execute()
     if response and hasattr(response, "data") and response.data:
         return response.data
     else:
@@ -71,7 +71,7 @@ async def get_user_by_id(user_id):
 async def get_all_foremen():
     print("[DB] get_all_foremen вызван")
     try:
-        response = await supabase.table("foremen").select("*").execute()
+        response = supabase.table("foremen").select("*").execute()
         data = response.data or []
         print(f"[DB] Получено foremen: {len(data)}")
         return data
@@ -81,7 +81,7 @@ async def get_all_foremen():
 
 # Добавление нового прораба
 async def add_foreman_if_missing(name, role, user_id):
-    await supabase.table("foremen").insert({
+    supabase.table("foremen").insert({
         "id": user_id,
         "name": name,
         "role": role
@@ -93,7 +93,7 @@ async def update_foreman_id(name, user_id):
 
 # Логирование действий с инструментом
 async def log_action(user_id, action, tool):
-    await supabase.table("pending").insert({
+    supabase.table("pending").insert({
         "timestamp": datetime.now().isoformat(),
         "user_id": user_id,
         "action": action,
@@ -105,12 +105,12 @@ async def log_action(user_id, action, tool):
 
 # Получение истории действий по инструменту
 async def get_tool_history(tool_id):
-    response = await supabase.table("pending").select("*").eq("tool_id", tool_id).order("timestamp", desc=True).execute()
+    response = supabase.table("pending").select("*").eq("tool_id", tool_id).order("timestamp", desc=True).execute()
     return response.data if response.data else []
 
 # Создание пустого пользователя (если требуется)
 async def create_user(user_id, user_name):
-    await supabase.table("users").insert({
+    supabase.table("users").insert({
         "id": user_id,
         "name": user_name,
         "role": "Ответственный"
