@@ -89,7 +89,7 @@ async def add_foreman_if_missing(name, role, user_id):
 
 # Обновление ID у прораба
 async def update_foreman_id(name, user_id):
-    await supabase.table("foremen").update({"id": user_id}).eq("name", name).execute()
+    supabase.table("foremen").update({"id": user_id}).eq("name", name).execute()
 
 # Логирование действий с инструментом
 async def log_action(user_id, action, tool):
