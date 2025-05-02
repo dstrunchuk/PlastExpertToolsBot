@@ -1,8 +1,8 @@
-python-telegram-bot[webhooks]==20.8
-python-dotenv==1.0.1
-pandas
-openpyxl
+supabase==2.0.3
 httpx==0.24.1
 asyncpg==0.28.0
-supabase==2.0.3
+python-telegram-bot[webhooks]
+python-dotenv
+pandas
+openpyxl
 aiosqlite
