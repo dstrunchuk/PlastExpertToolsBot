@@ -141,4 +141,4 @@ async def assign_tools_to_user(user_id, user_name):
     for tool in tools:
         if tool.get("responsible") == user_name and not tool.get("responsible_id"):
             tool["responsible_id"] = user_id
-            await update_tool(tool)
+            update_tool(tool)
