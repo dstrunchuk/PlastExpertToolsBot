@@ -30,7 +30,7 @@ async def add_tool(tool):
     supabase.table("tools").insert(tool).execute()
 
 # Обновление существующего инструмента
-async def update_tool(tool):
+def update_tool(tool):
     try:
         if tool.get("id"):
             response = supabase.table("tools").update({
