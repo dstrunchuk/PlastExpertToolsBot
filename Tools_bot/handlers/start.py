@@ -91,7 +91,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     # Обновляем foremen только если id ещё не проставлен
     if found_user and not found_user.get("id"):
         print(f"[~] Обновляю foremen id для {name}")
-        await update_foreman_id(name, user_id)
+        update_foreman_id(name, user_id)
 
     # Ищем все инструменты, где responsible совпадает с его именем И НЕТ responsible_id
     assigned_count = 0
