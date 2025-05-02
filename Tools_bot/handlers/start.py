@@ -81,7 +81,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     print(f"[+] Зарегистрирован как: {role}")
 
-    await save_user({
+    save_user({
         "id": user_id,
         "name": name,
         "role": role
@@ -112,7 +112,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
             tool["responsible_id"] = user_id
             print(f"[>>] Привязываю {tool.get('name')} → user_id {user_id}")
             try:
-                await update_tool(tool)
+                update_tool(tool)
                 assigned_count += 1
             except Exception as e:
                 print(f"[!] Ошибка при update_tool: {e}")
