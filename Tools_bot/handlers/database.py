@@ -1,11 +1,11 @@
 import os
 from datetime import datetime
-from supabase import create_client, AsyncClient
+from supabase import create_client, Client
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-supabase: AsyncClient = create_client(SUPABASE_URL, SUPABASE_KEY, is_async=True)
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 # Получение всех инструментов
