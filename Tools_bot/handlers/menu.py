@@ -9,7 +9,7 @@ import re
 
 async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    user = await get_user_by_id(user_id)
+    user = get_user_by_id(user_id)
 
     # Если пользователь не найден — зарегистрировать его как Ответственного
     if not user:
@@ -66,7 +66,7 @@ async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         escape_chars = r'_*[]()~`>#+-=|{}.!'
         return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
 
-    tools = await get_all_tools()  # Теперь берём через базу!
+    tools = get_all_tools()  # Теперь берём через базу!
 
     my_tools = [tool for tool in tools if str(tool.get("responsible_id")) == str(user_id)]
 
@@ -140,7 +140,7 @@ async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ВСЕ ИНСТРУМЕНТЫ
 async def all_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
-    tools = await get_all_tools()
+    tools = get_all_tools()
 
     if not tools:
         await update.callback_query.edit_message_text("Инструментов нет.")
@@ -198,7 +198,7 @@ async def add_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def export_all_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
 
-    tools = await get_all_tools()
+    tools = get_all_tools()
 
     if not tools:
         await update.callback_query.edit_message_text(
@@ -265,7 +265,7 @@ async def add_object_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def foremen_list_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
 
-    foremen = await get_all_foremen()
+    foremen = get_all_foremen()
     if not foremen:
         await update.callback_query.edit_message_text("Нет доступных ответственных.")
         return
@@ -286,7 +286,7 @@ async def show_foreman_tools_handler(update: Update, context: ContextTypes.DEFAU
     await query.answer()
     foreman_id = int(query.data.split(":")[1])
 
-    tools = await get_all_tools()
+    tools = get_all_tools()
     user_tools = [tool for tool in tools if tool.get("responsible_id") == foreman_id]
 
     if not user_tools:

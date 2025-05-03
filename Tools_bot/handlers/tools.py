@@ -11,7 +11,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer()
     user_id = query.from_user.id
 
-    user = await get_user_by_id(user_id)
+    user = get_user_by_id(user_id)
     if not user:
         await query.edit_message_text("Пользователь не найден.", reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
@@ -23,7 +23,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
     action = parts[0]
     tool_id = parts[1]
 
-    tool = await get_tool_by_id(tool_id)
+    tool = get_tool_by_id(tool_id)
     if not tool:
         await query.edit_message_text("Инструмент не найден.", reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
@@ -52,7 +52,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif action == "request":
         responsible_id = tool.get("responsible_id")
         if responsible_id:
-            responsible_user = await get_user_by_id(responsible_id)
+            responsible_user = get_user_by_id(responsible_id)
             if responsible_user:
                 try:
                     await context.bot.send_message(
@@ -77,7 +77,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
             ]))
 
     elif action == "transfer":
-        foremen = await get_all_foremen()
+        foremen = get_all_foremen()
         buttons = []
         seen = set()
         for person in foremen:
@@ -124,7 +124,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await query.edit_message_text("Не удалось отправить запрос на передачу.")
 
     elif action == "assign":
-        foremen = await get_all_foremen()
+        foremen = get_all_foremen()
         buttons = []
         seen = set()
         for person in foremen:
@@ -136,7 +136,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     elif action == "confirm_transfer":
         _, tool_id, target_id = parts
-        new_user = await get_user_by_id(int(target_id))
+        new_user = get_user_by_id(int(target_id))
         if new_user:
             tool["responsible"] = new_user["name"]
             tool["responsible_id"] = new_user["id"]
@@ -152,7 +152,7 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     elif action == "confirm_assign":
         _, tool_id, target_id = parts
-        new_user = await get_user_by_id(int(target_id))
+        new_user = get_user_by_id(int(target_id))
         if new_user:
             tool["responsible"] = new_user["name"]
             tool["responsible_id"] = new_user["id"]
@@ -192,13 +192,13 @@ async def confirm_accept_handler(update: Update, context: ContextTypes.DEFAULT_T
         return
 
     # Обновляем владельца
-    tool = await get_tool_by_id(tool_id)
+    tool = get_tool_by_id(tool_id)
     if tool:
-        new_user = await get_user_by_id(accepting_user_id)
+        new_user = get_user_by_id(accepting_user_id)
         tool["responsible"] = new_user["name"]
         tool["responsible_id"] = new_user["id"]
-        await update_tool(tool)
-        await log_action(accepting_user_id, "Принял инструмент", tool)
+        update_tool(tool)
+        log_action(accepting_user_id, "Принял инструмент", tool)
 
         # Удаляем из pending
         del pending_transfers[tool_id]
@@ -222,7 +222,7 @@ async def schedule_transfer_reminder(context: ContextTypes.DEFAULT_TYPE):
         print(f"Ошибка при отправке напоминания: {e}")
 
 async def update_tool_card(query, tool: dict, user_id: int):
-    users = await get_all_users()
+    users = get_all_users()
     user = next((u for u in users if u["id"] == user_id), None)
     role = user.get("role", "Ответственный") if user else "Ответственный"
 
@@ -237,11 +237,11 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     user_id = update.effective_user.id
-    user = await get_user_by_id( user_id)
+    user = get_user_by_id( user_id)
     role = user.get("role", "Ответственный") if user else "Ответственный"
 
     user_message = update.message.text.strip()
-    tools = await get_all_tools()
+    tools = get_all_tools()
 
     # Удаляем сообщение "Введи ID или название инструмента"
     find_prompt_id = context.user_data.pop("find_prompt_message_id", None)
@@ -396,7 +396,7 @@ async def handle_view_tool(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    tools = await get_all_tools()
+    tools = get_all_tools()
     tool_id = query.data.split(":")[1]
     tool = next((t for t in tools if str(t.get("id")) == tool_id), None)
 
@@ -405,7 +405,7 @@ async def handle_view_tool(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     user_id = query.from_user.id
-    users = await get_all_users()
+    users = get_all_users()
     user = next((u for u in users if u["id"] == user_id), None)
     role = user.get("role", "Ответственный") if user else "Ответственный"
 
@@ -420,8 +420,8 @@ async def handle_view_tool_by_index(update: Update, context: ContextTypes.DEFAUL
     await query.answer()
 
     user_id = query.from_user.id
-    users = await get_all_users()
-    tools = await get_all_tools()
+    users = get_all_users()
+    tools = get_all_tools()
 
     try:
         index = int(query.data.split(":")[1])
@@ -502,7 +502,7 @@ async def export_one_tool_history(update: Update, context: ContextTypes.DEFAULT_
     await query.answer()
 
     tool_id = query.data.split(":")[1]
-    history = await get_tool_history(tool_id)
+    history = get_tool_history(tool_id)
 
     if not history:
         await query.edit_message_text(
