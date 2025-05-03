@@ -247,7 +247,7 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     find_prompt_id = context.user_data.pop("find_prompt_message_id", None)
     if find_prompt_id:
         try:
-            await update.effective_chat.delete_message(find_prompt_id)
+            await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=find_prompt_id)
         except Exception as e:
             print(f"Не удалось удалить find_prompt сообщение: {e}")
 

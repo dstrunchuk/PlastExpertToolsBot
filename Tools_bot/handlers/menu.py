@@ -126,7 +126,6 @@ async def my_tools_next(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
 
-    # Отправляем НОВОЕ сообщение
     sent_message = await update.effective_chat.send_message(
         "Введи ID или название инструмента:",
         reply_markup=InlineKeyboardMarkup([
@@ -134,7 +133,7 @@ async def find_tool_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ])
     )
 
-    # Сохраняем ID нового сообщения в context.chat_data
+    # Сохраняем ID этого сообщения
     context.chat_data["find_prompt_message_id"] = sent_message.message_id
 
 # ВСЕ ИНСТРУМЕНТЫ
