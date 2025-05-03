@@ -15,6 +15,7 @@ def get_all_tools():
         response = supabase.table("tools").select("*").execute()
         tools = response.data or []
         print(f"[DB] Получено инструментов: {len(tools)}")
+        print(f"[DB] Ответ от Supabase: {response.data}")
         return tools
     except Exception as e:
         print(f"[!] Ошибка в get_all_tools: {e}")
