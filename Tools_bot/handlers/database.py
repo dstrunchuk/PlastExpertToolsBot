@@ -12,7 +12,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 async def get_all_tools():
     print("[DB] get_all_tools вызван")
     try:
-        response = supabase.table("tools").select("*").execute()
+        response = await supabase.table("tools").select("*").execute()
         tools = response.data or []
         print(f"[DB] Получено инструментов: {len(tools)}")
         return tools
