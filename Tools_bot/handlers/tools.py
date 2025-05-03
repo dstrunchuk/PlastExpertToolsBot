@@ -244,7 +244,7 @@ async def process_tool_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tools = get_all_tools()
 
     # Удаляем сообщение "Введи ID или название инструмента"
-    find_prompt_id = context.user_data.pop("find_prompt_message_id", None)
+    find_prompt_id = context.chat_data.pop("find_prompt_message_id", None)
     if find_prompt_id:
         try:
             await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=find_prompt_id)
