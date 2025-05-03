@@ -10,7 +10,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
     # Проверяем, существует ли уже пользователь в базе
-    user = await get_user_by_id(user_id)
+    user = get_user_by_id(user_id)
 
     if user:
         # Если пользователь уже зарегистрирован
