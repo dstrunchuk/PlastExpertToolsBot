@@ -89,7 +89,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     print(f"[+] Пользователь сохранён в users")
 
     # Обновляем foremen только если id ещё не проставлен
-    if found_user and not found_user.get("id"):
+    if found_user:
         print(f"[~] Обновляю foremen id для {name}")
         update_foreman_id(name, user_id)
 
@@ -108,7 +108,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         print(f"[?] Сравниваю: '{responsible.strip().lower()}' == '{name.strip().lower()}'")
 
-        if responsible.strip().lower() == name.strip().lower() and not str(tool.get("responsible_id")).strip():
+        if responsible.strip().lower() == name.strip().lower() and not str(tool.get("responsible_id", "")).strip():
             tool["responsible_id"] = user_id
             print(f"[>>] Привязываю {tool.get('name')} → user_id {user_id}")
             try:

@@ -33,8 +33,8 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if action == "take":
         tool["responsible"] = user["name"]
         tool["responsible_id"] = user_id
-        await update_tool(tool)
-        await log_action(user_id, "Стал ответственным", tool)
+        update_tool(tool)
+        log_action(user_id, "Стал ответственным", tool)
         await query.edit_message_text(f"Вы стали ответственным за {tool['name']}.", reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
         ]))
@@ -43,8 +43,8 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         tool["responsible"] = None
         tool["responsible_id"] = None
         tool["object"] = "Ladu"
-        await update_tool(tool)
-        await log_action(user_id, "Оставил на складе", tool)
+        update_tool(tool)
+        log_action(user_id, "Оставил на складе", tool)
         await query.edit_message_text(f"Инструмент {tool['name']} оставлен на складе.", reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
         ]))
@@ -140,8 +140,8 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if new_user:
             tool["responsible"] = new_user["name"]
             tool["responsible_id"] = new_user["id"]
-            await update_tool(tool)
-            await log_action(user_id, f"Передал инструмент → {new_user['name']}", tool)
+            update_tool(tool)
+            log_action(user_id, f"Передал инструмент → {new_user['name']}", tool)
             await query.edit_message_text(f"Инструмент {tool['name']} передан {new_user['name']}.", reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
             ]))
@@ -156,8 +156,8 @@ async def handle_tool_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if new_user:
             tool["responsible"] = new_user["name"]
             tool["responsible_id"] = new_user["id"]
-            await update_tool(tool)
-            await log_action(user_id, f"Назначил {new_user['name']} ответственным", tool)
+            update_tool(tool)
+            log_action(user_id, f"Назначил {new_user['name']} ответственным", tool)
             await query.edit_message_text(f"{new_user['name']} назначен ответственным за {tool['name']}.", reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("◀️ Главное меню", callback_data="main_back")]
             ]))
