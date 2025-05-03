@@ -9,7 +9,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 # Получение всех инструментов
-async def get_all_tools():
+def get_all_tools():
     print("[DB] get_all_tools вызван")
     try:
         response = supabase.table("tools").select("*").execute()
@@ -88,8 +88,10 @@ async def add_foreman_if_missing(name, role, user_id):
     }).execute()
 
 # Обновление ID у прораба
-async def update_foreman_id(name, user_id):
-    supabase.table("foremen").update({"id": user_id}).eq("name", name).execute()
+def update_foreman_id(name, user_id):
+    print(f"[DB] Обновляю foremen — name: {name}, user_id: {user_id}")
+    response = supabase.table("foremen").update({"id": user_id}).eq("name", name).execute()
+    print(f"[DB] Ответ от Supabase: {response.data}")
 
 # Логирование действий с инструментом
 async def log_action(user_id, action, tool):
