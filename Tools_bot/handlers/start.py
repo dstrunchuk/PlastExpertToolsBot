@@ -31,7 +31,7 @@ async def send_message(update: Update, text: str):
 
 # Меню выбора имени
 async def show_registration_menu(update: Update):
-    foremen = await get_all_foremen()
+    foremen = get_all_foremen()
 
     # Убираем всех, у кого имя Admin
     foremen = [f for f in foremen if f["name"] != "Admin"]
@@ -69,7 +69,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     print(f"[+] Имя из кнопки: {name} (user_id: {user_id})")
 
-    foremen = await get_all_foremen()
+    foremen = get_all_foremen()
     found_user = next((f for f in foremen if f["name"] == name), None)
 
     if found_user:
@@ -95,10 +95,10 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     # Ищем все инструменты, где responsible совпадает с его именем И НЕТ responsible_id
     assigned_count = 0
-    tools = await get_all_tools()
+    tools = get_all_tools()
 
     print("[~] Запрашиваю инструменты через get_all_tools()...")
-    tools = await get_all_tools()
+    tools = get_all_tools()
     print(f"[~] Загружено инструментов: {len(tools)}")
 
     for tool in tools:
@@ -112,31 +112,31 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
             tool["responsible_id"] = user_id
             print(f"[>>] Привязываю {tool.get('name')} → user_id {user_id}")
             try:
-                await update_tool(tool)
+                update_tool(tool)
                 assigned_count += 1
             except Exception as e:
                 print(f"[!] Ошибка при update_tool: {e}")
 
     # Повторная проверка
-    tools_check = await get_all_tools()
+    tools_check = get_all_tools()
     for tool in tools_check:
         if tool.get("responsible_id") == user_id:
             print(f"[OK] Инструмент закреплён: {tool.get('name')} (ID: {tool.get('id')})")
 
     try:
-        await query.edit_message_text(
+        query.edit_message_text(
             f"Привет, {name}! Ты зарегистрирован как {display_role}.\n"
             f"На тебя закреплено {assigned_count} инструмент(ов)."
         )
     except Exception as e:
         print(f"[!] Ошибка при выводе финального сообщения: {e}")
 
-    await show_main_menu(update, context)
+    show_main_menu(update, context)
     
 
 
 async def assign_tools_to_user(user_id, user_name):
-    tools = await get_all_tools()
+    tools = get_all_tools()
 
     for tool in tools:
         if tool.get("responsible") == user_name and not tool.get("responsible_id"):
