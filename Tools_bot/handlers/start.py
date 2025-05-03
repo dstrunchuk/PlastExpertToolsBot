@@ -124,14 +124,14 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
             print(f"[OK] Инструмент закреплён: {tool.get('name')} (ID: {tool.get('id')})")
 
     try:
-        query.edit_message_text(
+        await query.edit_message_text(
             f"Привет, {name}! Ты зарегистрирован как {display_role}.\n"
             f"На тебя закреплено {assigned_count} инструмент(ов)."
         )
     except Exception as e:
         print(f"[!] Ошибка при выводе финального сообщения: {e}")
 
-    show_main_menu(update, context)
+    await show_main_menu(update, context)
     
 
 
