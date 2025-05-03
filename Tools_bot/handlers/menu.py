@@ -43,11 +43,19 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message:
         await update.message.reply_text(menu_text, reply_markup=InlineKeyboardMarkup(buttons))
     elif update.callback_query:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Главное меню:",
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
+        try:
+            await update.callback_query.edit_message_text(
+                text=menu_text,
+                reply_markup=InlineKeyboardMarkup(buttons)
+            )
+        except Exception as e:
+            print(f"[!] Ошибка при редактировании сообщения: {e}")
+            # fallback: отправим новое сообщение, если нельзя редактировать
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=menu_text,
+                reply_markup=InlineKeyboardMarkup(buttons)
+            )
 
 # Мои инструменты
 async def my_tools_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
