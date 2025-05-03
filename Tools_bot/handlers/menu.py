@@ -46,7 +46,7 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Главное меню:",
-            reply_markup=InlineKeyboardMarkup(buttons)
+            reply_markup=InlineKeyboardMarkup([...])
         )
 
 # Мои инструменты
