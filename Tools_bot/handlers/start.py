@@ -91,7 +91,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     # Обновляем foremen только если id ещё не проставлен
     if found_user and not found_user.get("id"):
         print(f"[~] Обновляю foremen id для {name}")
-        update_foreman_id(name, user_id)
+        await update_foreman_id(name, user_id)
 
     # Ищем все инструменты, где responsible совпадает с его именем И НЕТ responsible_id
     assigned_count = 0
@@ -112,7 +112,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
             tool["responsible_id"] = user_id
             print(f"[>>] Привязываю {tool.get('name')} → user_id {user_id}")
             try:
-                update_tool(tool)
+                await update_tool(tool)
                 assigned_count += 1
             except Exception as e:
                 print(f"[!] Ошибка при update_tool: {e}")
