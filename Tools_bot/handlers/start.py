@@ -123,15 +123,21 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         if tool.get("responsible_id") == user_id:
             print(f"[OK] Инструмент закреплён: {tool.get('name')} (ID: {tool.get('id')})")
 
-    print(f"[DEBUG] query: {query}")
-    print(f"[DEBUG] assigned_count: {assigned_count}")
     try:
-        await query.edit_message_text(
-            f"Привет, {name}! Ты зарегистрирован как {display_role}.\n"
-            f"На тебя закреплено {assigned_count} инструмент(ов)."
-        )
+        if query.message:
+            await query.edit_message_text(
+               f"Привет, {name}! Ты зарегистрирован как {display_role}.\n"
+               f"На тебя закреплено {assigned_count} инструмент(ов)."
+            )
+        else:
+            raise Exception("query.message is None")
     except Exception as e:
-        print(f"[!] Ошибка при выводе финального сообщения: {e} — тип query: {type(query)}")
+        print(f"[!] Ошибка при редактировании, пробуем отправить новое сообщение: {e}")
+        await context.bot.send_message(
+            chat_id=query.from_user.id,
+            text=f"Привет, {name}! Ты зарегистрирован как {display_role}.\n"
+                 f"На тебя закреплено {assigned_count} инструмент(ов)."
+        )
 
     await show_main_menu(update, context)
     
